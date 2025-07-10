@@ -1,0 +1,15 @@
+services:
+  nginx:
+    build:
+      context: ../nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    ports:
+      - "80:80"
+    networks:
+      - modulate_network
+    restart: unless-stopped
+
+networks:
+  modulate_network:
+    driver: bridge
