@@ -1,0 +1,62 @@
+spring:
+  application:
+    name: core-service
+  #  file multipart
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 300MB
+      max-request-size: 300MB
+  #  flyway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  #  pgsql
+  datasource:
+    url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/Rhythmix}
+    username: ${POSTGRES_USER:db_user}
+    password: ${POSTGRES_PASSWORD:db_password}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  # kafka
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9094}
+    consumer:
+      group-id: message-consumer-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+  #  keycloak
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://keycloak.local:8080/realms/Rhythmix}
+# minio
+minio:
+  url: ${MINIO_URL:http://localhost:9000/}
+  access-key: ${MINIO_ROOT_USER:minio_user}
+  secret-key: ${KEYCLOAK_ADMIN_PASSWORD:minio_password}
+  bucket: rhythmix
+
+server:
+  port: 8081
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  metrics:
+    enable:
+      all: true
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+      percentiles:
+        "[http.server.requests]": 0.5, 0.95, 0.99
