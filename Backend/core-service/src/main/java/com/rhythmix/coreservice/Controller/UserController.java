@@ -2,7 +2,7 @@ package com.rhythmix.coreservice.Controller;
 
 import com.rhythmix.coreservice.dto.RhythmixUserDto;
 import com.rhythmix.coreservice.mapper.RhythmixUserMapper;
-import com.rhythmix.coreservice.service.impl.UserServiceImpl;
+import com.rhythmix.coreservice.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,7 +16,7 @@ import java.security.Principal;
 @RequestMapping("/api/user")
 public class UserController {
     private final RhythmixUserMapper rhythmixUserMapper;
-    private final UserServiceImpl userService;
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<RhythmixUserDto> getUserInfo(Principal principal) {
