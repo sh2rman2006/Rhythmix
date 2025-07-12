@@ -41,7 +41,7 @@ spring:
 minio:
   url: ${MINIO_URL:http://localhost:9000/}
   access-key: ${MINIO_ROOT_USER:minio_user}
-  secret-key: ${KEYCLOAK_ADMIN_PASSWORD:minio_password}
+  secret-key: ${MINIO_ROOT_PASSWORD:minio_password}
   bucket: rhythmix
 
 server:
