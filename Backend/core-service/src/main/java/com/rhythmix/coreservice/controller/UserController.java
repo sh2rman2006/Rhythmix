@@ -1,4 +1,4 @@
-package com.rhythmix.coreservice.Controller;
+package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.RhythmixUserDto;
 import com.rhythmix.coreservice.mapper.RhythmixUserMapper;
