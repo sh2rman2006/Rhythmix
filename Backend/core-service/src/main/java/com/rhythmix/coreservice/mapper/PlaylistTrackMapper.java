@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 public class PlaylistTrackMapper implements EntitiesMapper<PlaylistTrack, PlaylistTrackDto> {
     private final PlaylistTrackIdMapper playlistTrackIdMapper;
     private final TrackMapper trackMapper;
-    private final PlaylistMapper playlistMapper;
 
     @Override
     public PlaylistTrackDto toDto(PlaylistTrack playlistTrack) {
