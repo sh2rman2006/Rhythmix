@@ -46,6 +46,9 @@ public class Artist {
     @Column(name = "profile_image_url", length = Integer.MAX_VALUE)
     private String profileImageUrl;
 
+    @Column(name = "file_image_url", length = Integer.MAX_VALUE)
+    private String fileImageUrl;
+
     @NotNull
     @Column(name = "created_by", nullable = false)
     private UUID createdBy;

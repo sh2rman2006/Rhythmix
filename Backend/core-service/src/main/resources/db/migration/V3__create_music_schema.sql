@@ -8,6 +8,7 @@ CREATE TABLE artists
     country           VARCHAR(100),
     city              VARCHAR(100),
     profile_image_url TEXT,
+    file_image_url    TEXT,
     created_by        UUID                        NOT NULL,
     created_at        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at        TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
