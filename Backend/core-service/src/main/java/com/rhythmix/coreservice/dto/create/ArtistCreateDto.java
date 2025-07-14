@@ -9,8 +9,6 @@ import lombok.experimental.Accessors;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * DTO for {@link com.rhythmix.coreservice.entity.Artist}
