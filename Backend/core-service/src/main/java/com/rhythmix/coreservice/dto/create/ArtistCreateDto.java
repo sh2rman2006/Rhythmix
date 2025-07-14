@@ -9,8 +9,6 @@ import lombok.experimental.Accessors;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
-import java.time.Instant;
-import java.util.UUID;
 
 /**
  * DTO for {@link com.rhythmix.coreservice.entity.Artist}
@@ -20,7 +18,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @Accessors(chain = true)
 public class ArtistCreateDto implements Serializable {
-    private UUID id;
     @NotNull
     @Size(max = 255)
     private String stageName;
@@ -33,8 +30,4 @@ public class ArtistCreateDto implements Serializable {
     private String city;
     private MultipartFile avatarFile;
     private String profileImageUrl;
-    @NotNull
-    private Instant createdAt;
-    @NotNull
-    private Instant updatedAt;
 }

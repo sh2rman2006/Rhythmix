@@ -16,10 +16,10 @@ import java.util.UUID;
 
 @Getter
 @Setter
-@Entity
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@Entity
 @Table(name = "tracks", schema = "public", indexes = {
         @Index(name = "idx_tracks_artist_id", columnList = "artist_id"),
         @Index(name = "idx_tracks_album_id", columnList = "album_id")
@@ -79,7 +79,12 @@ public class Track {
     @OneToMany(mappedBy = "track")
     private Set<PlaylistTrack> playlistTracks = new LinkedHashSet<>();
 
-    @ManyToMany(mappedBy = "tracks")
+    @ManyToMany
+    @JoinTable(
+            name = "track_genres",
+            joinColumns = @JoinColumn(name = "track_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
     private Set<Genre> genres = new LinkedHashSet<>();
 
 }

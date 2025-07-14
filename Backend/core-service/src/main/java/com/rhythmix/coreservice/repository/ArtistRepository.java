@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface ArtistRepository extends JpaRepository<Artist, UUID> {
 
     Optional<Artist> findByStageNameIgnoreCase(String stageName);
+
+    boolean existsByStageNameIgnoreCase(String stageName);
 }

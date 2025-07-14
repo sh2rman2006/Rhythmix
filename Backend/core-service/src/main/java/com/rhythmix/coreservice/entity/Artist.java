@@ -15,7 +15,8 @@ import java.util.UUID;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor@Entity
+@AllArgsConstructor
+@Entity
 @Table(name = "artists", schema = "public")
 public class Artist {
     @Id
@@ -67,9 +68,33 @@ public class Artist {
     private Set<Album> albums = new LinkedHashSet<>();
 
     @ManyToMany
+    @JoinTable(
+            name = "artist_genres",
+            joinColumns = @JoinColumn(name = "artist_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
     private Set<Genre> genres = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "artist")
     private Set<Track> tracks = new LinkedHashSet<>();
 
+    @Override
+    public String toString() {
+        return "Artist{" +
+                "id=" + id +
+                ", stageName='" + stageName + '\'' +
+                ", realName='" + realName + '\'' +
+                ", biography='" + biography + '\'' +
+                ", country='" + country + '\'' +
+                ", city='" + city + '\'' +
+                ", profileImageUrl='" + profileImageUrl + '\'' +
+                ", fileImageUrl='" + fileImageUrl + '\'' +
+                ", createdBy=" + createdBy +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                ", albums=" + albums +
+                ", genres=" + genres +
+                ", tracks=" + tracks +
+                '}';
+    }
 }
