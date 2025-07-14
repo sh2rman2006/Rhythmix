@@ -20,7 +20,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @Accessors(chain = true)
 public class ArtistCreateDto implements Serializable {
-    private UUID id;
     @NotNull
     @Size(max = 255)
     private String stageName;
@@ -33,8 +32,4 @@ public class ArtistCreateDto implements Serializable {
     private String city;
     private MultipartFile avatarFile;
     private String profileImageUrl;
-    @NotNull
-    private Instant createdAt;
-    @NotNull
-    private Instant updatedAt;
 }

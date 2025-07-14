@@ -60,9 +60,11 @@ public class Album {
     private Instant updatedAt;
 
     @ManyToMany
-    @JoinTable(name = "album_genres",
+    @JoinTable(
+            name = "album_genres",
             joinColumns = @JoinColumn(name = "album_id"),
-            inverseJoinColumns = @JoinColumn(name = "genre_id"))
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
     private Set<Genre> genres = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "album")

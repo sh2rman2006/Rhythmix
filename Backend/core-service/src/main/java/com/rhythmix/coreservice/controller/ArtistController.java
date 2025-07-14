@@ -2,6 +2,8 @@ package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.ArtistDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
+import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
+import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.mapper.ArtistMapper;
 import com.rhythmix.coreservice.service.ArtistService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +33,7 @@ public class ArtistController {
         try {
             ArtistDto artistDto = artistMapper.toDto(artistService.createArtist(artistCreateDto, principal));
             return ResponseEntity.ok(artistDto);
-        } catch (IOException e) {
+        } catch (IOException | IllegalContentTypeException | ArtistAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();

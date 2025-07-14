@@ -14,8 +14,8 @@ import java.util.UUID;
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "genres", schema = "public", uniqueConstraints = {
         @UniqueConstraint(name = "genres_name_key", columnNames = {"name"})
