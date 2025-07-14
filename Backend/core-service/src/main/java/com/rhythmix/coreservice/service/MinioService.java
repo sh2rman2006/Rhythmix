@@ -9,4 +9,12 @@ public interface MinioService {
     String uploadUserImage(InputStream stream, String filename, String contentType);
 
     String uploadMusicAudio(InputStream stream, String filename, String contentType);
+
+    String generatePresignedUrl(String objectName, int expirySeconds);
+
+    InputStream download(String objectName);
+
+    int extractDuration(byte[] bytes);
+
+    void delete(String filePathOrUrl);
 }

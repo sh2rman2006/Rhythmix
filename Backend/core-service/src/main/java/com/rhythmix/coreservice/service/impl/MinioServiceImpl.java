@@ -75,6 +75,7 @@ public class MinioServiceImpl implements MinioService {
         }
     }
 
+    @Override
     public String generatePresignedUrl(String objectName, int expirySeconds) {
         try {
             return minioClient.getPresignedObjectUrl(
@@ -90,6 +91,7 @@ public class MinioServiceImpl implements MinioService {
         }
     }
 
+    @Override
     public InputStream download(String objectName) {
         try {
             return minioClient.getObject(
@@ -103,6 +105,7 @@ public class MinioServiceImpl implements MinioService {
         }
     }
 
+    @Override
     public int extractDuration(byte[] bytes) {
         try {
             Path tempFile = Files.createTempFile("track_", ".mp3");
@@ -131,6 +134,7 @@ public class MinioServiceImpl implements MinioService {
         }
     }
 
+    @Override
     public void delete(String filePathOrUrl) {
         if (filePathOrUrl == null || filePathOrUrl.isBlank()) return;
 
