@@ -1,11 +1,11 @@
 package com.rhythmix.coreservice.controller;
 
-import com.rhythmix.coreservice.dto.AlbumDto;
-import com.rhythmix.coreservice.dto.create.AlbumCreateDto;
+import com.rhythmix.coreservice.dto.TrackDto;
+import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.exception.AlbumAlreadyExistException;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
-import com.rhythmix.coreservice.mapper.AlbumMapper;
-import com.rhythmix.coreservice.service.AlbumService;
+import com.rhythmix.coreservice.mapper.TrackMapper;
+import com.rhythmix.coreservice.service.TrackService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -18,22 +18,24 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/album")
-@Tag(name = "Album", description = "API для альбомов")
-public class AlbumController {
-    private final AlbumService albumService;
-    private final AlbumMapper albumMapper;
+@RequestMapping("/api/track")
+@Tag(name = "Track", description = "API для треков")
+public class TrackController {
+    private final TrackService trackService;
+    private final TrackMapper trackMapper;
 
-    @Operation(summary = "Создать альбом", description = "Доступно только для модераторов")
+    @Operation(summary = "Создать трек", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
     @PostMapping
-    public ResponseEntity<AlbumDto> createAlbum(@Valid @ModelAttribute AlbumCreateDto albumCreateDto) {
+    public ResponseEntity<TrackDto> createAlbum(@Valid @ModelAttribute TrackCreateDto trackCreateDto, Principal principal) {
         try {
-            AlbumDto albumDto = albumMapper.toDto(albumService.createAlbum(albumCreateDto));
-            return ResponseEntity.ok(albumDto);
+            TrackDto trackDto = trackMapper.toDto(trackService.createTrack(trackCreateDto, principal));
+            return ResponseEntity.ok(trackDto);
         } catch (IllegalContentTypeException | AlbumAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {

@@ -21,6 +21,7 @@ CREATE TABLE albums
     title        VARCHAR(255)                NOT NULL,
     description  TEXT,
     cover_url    TEXT,
+    cover_file   TEXT,
     release_date DATE,
     artist_id    UUID                        NOT NULL,
     created_at   TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
@@ -34,8 +35,9 @@ CREATE TABLE tracks
     id           UUID PRIMARY KEY,
     title        VARCHAR(255)                NOT NULL,
     description  TEXT,
-    file_url     TEXT                        NOT NULL,
+    audio_file   TEXT                        NOT NULL,
     cover_url    TEXT,
+    cover_file   TEXT,
     duration     INTEGER, -- длительность в секундах
     explicit     BOOLEAN                     NOT NULL DEFAULT FALSE,
     release_date DATE,

@@ -40,6 +40,9 @@ public class Album {
     @Column(name = "cover_url", length = Integer.MAX_VALUE)
     private String coverUrl;
 
+    @Column(name = "cover_file", length = Integer.MAX_VALUE)
+    private String coverFile;
+
     @Column(name = "release_date")
     private LocalDate releaseDate;
 

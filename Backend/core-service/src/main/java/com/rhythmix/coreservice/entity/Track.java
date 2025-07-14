@@ -39,11 +39,14 @@ public class Track {
     private String description;
 
     @NotNull
-    @Column(name = "file_url", nullable = false, length = Integer.MAX_VALUE)
-    private String fileUrl;
+    @Column(name = "audio_file", nullable = false, length = Integer.MAX_VALUE)
+    private String audioFile;
 
     @Column(name = "cover_url", length = Integer.MAX_VALUE)
     private String coverUrl;
+
+    @Column(name = "cover_file", length = Integer.MAX_VALUE)
+    private String coverFile;
 
     @Column(name = "duration")
     private Integer duration;
@@ -87,4 +90,24 @@ public class Track {
     )
     private Set<Genre> genres = new LinkedHashSet<>();
 
+    @Override
+    public String toString() {
+        return "Track{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", audioFile='" + audioFile + '\'' +
+                ", coverUrl='" + coverUrl + '\'' +
+                ", coverFile='" + coverFile + '\'' +
+                ", duration=" + duration +
+                ", explicit=" + explicit +
+                ", releaseDate=" + releaseDate +
+                ", uploadedAt=" + uploadedAt +
+                ", uploadedBy=" + uploadedBy +
+                ", artist=" + artist +
+                ", album=" + album +
+                ", playlistTracks=" + playlistTracks +
+                ", genres=" + genres +
+                '}';
+    }
 }

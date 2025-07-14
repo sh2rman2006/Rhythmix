@@ -1,6 +1,5 @@
 package com.rhythmix.coreservice.dto.create;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -14,20 +13,27 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 /**
- * DTO for {@link com.rhythmix.coreservice.entity.Album}
+ * DTO for {@link com.rhythmix.coreservice.entity.Track}
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class AlbumCreateDto implements Serializable {
+public class TrackCreateDto implements Serializable {
+    private UUID id;
     @NotNull
-    @NotBlank
     @Size(max = 255)
     private String title;
     private String description;
+    @NotNull
+    private MultipartFile audioFile;
     private String coverUrl;
     private MultipartFile coverFile;
+    @NotNull
+    private Boolean explicit = false;
     private LocalDate releaseDate;
+    @NotNull
+    private UUID uploadedBy;
     private UUID artistId;
+    private UUID albumId;
 }

@@ -26,7 +26,7 @@ public class TrackDto implements Serializable {
     private String title;
     private String description;
     @NotNull
-    private String fileUrl;
+    private String audioUrl;
     private String coverUrl;
     private Integer duration;
     @NotNull
@@ -34,8 +34,6 @@ public class TrackDto implements Serializable {
     private LocalDate releaseDate;
     @NotNull
     private Instant uploadedAt;
-    @NotNull
-    private UUID uploadedBy;
     @NotNull
     private ArtistDto artist;
     private AlbumDto album;
