@@ -32,7 +32,7 @@ public class ArtistController {
     private final ArtistService artistService;
     private final ArtistMapper artistMapper;
 
-    @Operation(summary = "Создать артиста")
+    @Operation(summary = "Создать артиста", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ArtistDto> createArtist(@Valid @ModelAttribute ArtistCreateDto artistCreateDto, Principal principal) {

@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -39,7 +40,7 @@ public class ArtistServiceImpl implements ArtistService {
     }
 
     @Override
-    public Optional<Artist> getArtistByStageName(String stageName) {
+    public List<Artist> getArtistByStageName(String stageName) {
         return artistRepository.findByStageNameIgnoreCase(stageName);
     }
 
