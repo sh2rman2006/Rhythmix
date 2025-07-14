@@ -14,6 +14,7 @@ public class ArtistMapper implements EntitiesMapper<Artist, ArtistDto> {
 
     @Override
     public ArtistDto toDto(@NotNull Artist artist) {
+        if (artist == null) return null;
         String profileImageUrl = artist.getProfileImageUrl();
         String fileImageUrl = artist.getFileImageUrl();
 

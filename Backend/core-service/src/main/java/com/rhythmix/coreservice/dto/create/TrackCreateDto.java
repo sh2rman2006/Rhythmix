@@ -1,4 +1,4 @@
-package com.rhythmix.coreservice.dto;
+package com.rhythmix.coreservice.dto.create;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -6,9 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -19,22 +19,21 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Accessors(chain = true)
-public class TrackDto implements Serializable {
+public class TrackCreateDto implements Serializable {
     private UUID id;
     @NotNull
     @Size(max = 255)
     private String title;
     private String description;
     @NotNull
-    private String audioUrl;
+    private MultipartFile audioFile;
     private String coverUrl;
-    private Integer duration;
+    private MultipartFile coverFile;
     @NotNull
     private Boolean explicit = false;
     private LocalDate releaseDate;
     @NotNull
-    private Instant uploadedAt;
-    @NotNull
-    private ArtistDto artist;
-    private AlbumDto album;
+    private UUID uploadedBy;
+    private UUID artistId;
+    private UUID albumId;
 }

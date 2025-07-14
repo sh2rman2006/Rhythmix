@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -34,16 +33,6 @@ public class ArtistServiceImpl implements ArtistService {
     }
 
     @Override
-    public Optional<Artist> getArtistById(UUID id) {
-        return artistRepository.findById(id);
-    }
-
-    @Override
-    public Optional<Artist> getArtistByStageName(String stageName) {
-        return artistRepository.findByStageNameIgnoreCase(stageName);
-    }
-
-    @Override
     @Transactional
     public Artist createArtist(ArtistCreateDto artistCreateDto, Principal principal) throws IOException {
         if (artistRepository.existsByStageNameIgnoreCase(artistCreateDto.getStageName())) {
@@ -51,7 +40,9 @@ public class ArtistServiceImpl implements ArtistService {
             throw new ArtistAlreadyExistException("Stage name already exists");
         }
 
-        String profileUrl = artistCreateDto.getProfileImageUrl().isBlank() ? null : artistCreateDto.getProfileImageUrl();
+        String profileUrl = artistCreateDto.getProfileImageUrl() == null
+                || artistCreateDto.getProfileImageUrl().isBlank()
+                ? null : artistCreateDto.getProfileImageUrl();
 
         String fileUrl = null;
         try {
