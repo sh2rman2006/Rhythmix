@@ -36,9 +36,6 @@ public class ArtistController {
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ArtistDto> createArtist(@Valid @ModelAttribute ArtistCreateDto artistCreateDto, Principal principal) {
-        var token = (JwtAuthenticationToken) principal;
-        System.out.println(token.getAuthorities());
-
         try {
             ArtistDto artistDto = artistMapper.toDto(artistService.createArtist(artistCreateDto, principal));
             return ResponseEntity.ok(artistDto);
