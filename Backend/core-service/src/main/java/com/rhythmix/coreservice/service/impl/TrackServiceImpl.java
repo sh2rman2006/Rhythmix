@@ -153,8 +153,14 @@ public class TrackServiceImpl implements TrackService {
 
         Track savedTrack = trackRepository.save(track);
 
-        log.info("Updated track: {}", savedTrack);
+        log.info("Updated track with id: {}", savedTrack);
 
         return savedTrack;
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrack(UUID trackId) {
+        trackRepository.deleteById(trackId);
     }
 }

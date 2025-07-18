@@ -11,11 +11,14 @@ import com.rhythmix.coreservice.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -50,6 +53,19 @@ public class AlbumController {
             return ResponseEntity.ok(albumDto);
         } catch (IllegalContentTypeException | AlbumNotFoundException e) {
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Удалить альбом", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @DeleteMapping("/delete/{albumId}")
+    public ResponseEntity<Void> deleteAlbum(@PathVariable @NotNull UUID albumId) {
+        try {
+            albumService.deleteAlbum(albumId);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();

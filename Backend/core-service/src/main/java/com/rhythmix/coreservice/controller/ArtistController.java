@@ -11,6 +11,7 @@ import com.rhythmix.coreservice.service.ArtistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -54,6 +56,19 @@ public class ArtistController {
             return ResponseEntity.ok(artistDto);
         } catch (IOException | IllegalContentTypeException | ArtistNotFoundException e) {
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Удалить артиста", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @DeleteMapping("/delete/{artistId}")
+    public ResponseEntity<Void> deleteArtist(@PathVariable @NotNull UUID artistId) {
+        try {
+            artistService.deleteArtist(artistId);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();

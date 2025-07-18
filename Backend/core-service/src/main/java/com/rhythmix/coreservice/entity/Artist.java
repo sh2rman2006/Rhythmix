@@ -64,7 +64,7 @@ public class Artist {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @OneToMany(mappedBy = "artist")
+    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Album> albums = new LinkedHashSet<>();
 
     @ManyToMany
@@ -75,7 +75,7 @@ public class Artist {
     )
     private Set<Genre> genres = new LinkedHashSet<>();
 
-    @OneToMany(mappedBy = "artist")
+    @OneToMany(mappedBy = "artist", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Track> tracks = new LinkedHashSet<>();
 
     @Override
