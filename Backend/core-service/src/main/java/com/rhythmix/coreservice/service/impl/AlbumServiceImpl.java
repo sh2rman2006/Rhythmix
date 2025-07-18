@@ -115,4 +115,10 @@ public class AlbumServiceImpl implements AlbumService {
         log.info("Updated album: {}", albumSaved);
         return albumSaved;
     }
+
+    @Override
+    @Transactional
+    public void deleteAlbum(UUID albumId) {
+        albumRepository.deleteById(albumId);
+    }
 }

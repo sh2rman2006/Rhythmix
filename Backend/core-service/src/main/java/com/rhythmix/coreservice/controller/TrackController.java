@@ -9,6 +9,7 @@ import com.rhythmix.coreservice.service.TrackService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -50,6 +52,19 @@ public class TrackController {
             return ResponseEntity.ok(trackDto);
         } catch (IllegalContentTypeException | TrackNotFoundException e) {
             return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Удалить трек", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteTrack(@PathVariable @NotNull UUID id) {
+        try {
+            trackService.deleteTrack(id);
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();

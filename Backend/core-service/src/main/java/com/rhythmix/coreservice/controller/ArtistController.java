@@ -68,7 +68,7 @@ public class ArtistController {
     public ResponseEntity<Void> deleteArtist(@PathVariable @NotNull UUID artistId) {
         try {
             artistService.deleteArtist(artistId);
-            return ResponseEntity.ok().build();
+            return ResponseEntity.noContent().build();
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();

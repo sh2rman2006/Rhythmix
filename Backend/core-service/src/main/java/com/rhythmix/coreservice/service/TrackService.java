@@ -6,10 +6,13 @@ import com.rhythmix.coreservice.entity.Track;
 
 import java.io.IOException;
 import java.security.Principal;
+import java.util.UUID;
 
 public interface TrackService {
 
     Track createTrack(TrackCreateDto trackCreateDto, Principal principal) throws IOException;
 
     Track updateTrack(TrackUpdateDto trackUpdateDto);
+
+    void deleteTrack(UUID trackId);
 }
