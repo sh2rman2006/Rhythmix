@@ -109,7 +109,7 @@ public class AlbumServiceImpl implements AlbumService {
         album.setReleaseDate(MergeUtils.preferNewIfPresent(album.getReleaseDate(), albumUpdateDto.getReleaseDate()));
         album.setUpdatedAt(Instant.now());
         album.setCoverUrl(MergeUtils.preferNewIfPresent(album.getCoverUrl(), albumUpdateDto.getCoverUrl()));
-        album.setCoverFile(fileUrl);
+        album.setCoverFile(MergeUtils.preferNewIfPresent(album.getCoverFile(), fileUrl));
 
         Album albumSaved = albumRepository.save(album);
         log.info("Updated album: {}", albumSaved);

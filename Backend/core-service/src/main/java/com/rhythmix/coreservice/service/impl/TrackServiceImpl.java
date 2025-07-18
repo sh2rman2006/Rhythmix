@@ -1,16 +1,19 @@
 package com.rhythmix.coreservice.service.impl;
 
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
+import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
 import com.rhythmix.coreservice.entity.Album;
 import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.entity.Track;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.exception.TrackAlreadyExistException;
+import com.rhythmix.coreservice.exception.TrackNotFoundException;
 import com.rhythmix.coreservice.repository.AlbumRepository;
 import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.repository.TrackRepository;
 import com.rhythmix.coreservice.service.MinioService;
 import com.rhythmix.coreservice.service.TrackService;
+import com.rhythmix.coreservice.utils.MergeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -107,6 +110,50 @@ public class TrackServiceImpl implements TrackService {
 
         Track savedTrack = trackRepository.save(track);
         log.info("Created track: {}", savedTrack);
+
+        return savedTrack;
+    }
+
+    @Override
+    @Transactional
+    public Track updateTrack(TrackUpdateDto trackUpdateDto) {
+        Track track = trackRepository.findWithArtistAndAlbumById(trackUpdateDto.getId())
+                .orElseThrow(() -> new TrackNotFoundException("Track not found with id: " + trackUpdateDto.getId() + "not found"));
+
+        String coverFile = null;
+        try {
+            if (trackUpdateDto.getCoverFile() != null && !trackUpdateDto.getCoverFile().isEmpty()) {
+                coverFile = minioService.uploadMusicImage(
+                        trackUpdateDto.getCoverFile().getInputStream(),
+                        trackUpdateDto.getTitle(),
+                        trackUpdateDto.getCoverFile().getContentType()
+                );
+
+            }
+        } catch (IOException e) {
+            log.error("Could not upload image to Minio: {}", e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
+            throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
+        } catch (Exception e) {
+            log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
+        }
+
+        Album album = albumRepository.findWithArtistById(trackUpdateDto.getAlbumId()).orElse(null);
+        if (album != null && album.getArtist().getId().equals(track.getArtist().getId())) {
+            track.setAlbum(album);
+        }
+
+        track.setTitle(MergeUtils.preferNewIfPresent(track.getTitle(), trackUpdateDto.getTitle()));
+        track.setDescription(MergeUtils.preferNewIfPresent(track.getDescription(), trackUpdateDto.getDescription()));
+        track.setCoverUrl(MergeUtils.preferNewIfPresent(track.getCoverUrl(), trackUpdateDto.getCoverUrl()));
+        track.setCoverFile(MergeUtils.preferNewIfPresent(track.getCoverFile(), coverFile));
+        track.setExplicit(MergeUtils.preferNewIfPresent(track.getExplicit(), trackUpdateDto.getExplicit()));
+        track.setReleaseDate(MergeUtils.preferNewIfPresent(track.getReleaseDate(), trackUpdateDto.getReleaseDate()));
+
+        Track savedTrack = trackRepository.save(track);
+
+        log.info("Updated track: {}", savedTrack);
 
         return savedTrack;
     }
