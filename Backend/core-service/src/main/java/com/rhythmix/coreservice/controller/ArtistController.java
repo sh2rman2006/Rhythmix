@@ -4,6 +4,7 @@ import com.rhythmix.coreservice.dto.ArtistDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
 import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
 import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
+import com.rhythmix.coreservice.exception.ArtistNotFoundException;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.mapper.ArtistMapper;
 import com.rhythmix.coreservice.service.ArtistService;
@@ -51,7 +52,7 @@ public class ArtistController {
         try {
             ArtistDto artistDto = artistMapper.toDto(artistService.updateArtist(artistUpdateDto));
             return ResponseEntity.ok(artistDto);
-        } catch (IOException | IllegalContentTypeException | ArtistAlreadyExistException e) {
+        } catch (IOException | IllegalContentTypeException | ArtistNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error(e.getMessage());

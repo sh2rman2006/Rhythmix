@@ -88,15 +88,7 @@ public class ArtistServiceImpl implements ArtistService {
 
     @Override
     public Artist updateArtist(ArtistUpdateDto artistUpdateDto) {
-        Artist artist = artistRepository.findById(artistUpdateDto.getId()).orElseThrow(() -> new ArtistNotFoundException("Artist not found"));
-
-        artist.setStageName(MergeUtils.preferNewIfPresent(artist.getStageName(), artistUpdateDto.getStageName()));
-        artist.setRealName(MergeUtils.preferNewIfPresent(artist.getRealName(), artistUpdateDto.getRealName()));
-        artist.setBiography(MergeUtils.preferNewIfPresent(artist.getBiography(), artistUpdateDto.getBiography()));
-        artist.setCountry(MergeUtils.preferNewIfPresent(artist.getCountry(), artistUpdateDto.getCountry()));
-        artist.setCity(MergeUtils.preferNewIfPresent(artist.getCity(), artistUpdateDto.getCity()));
-        artist.setUpdatedAt(Instant.now());
-        artist.setProfileImageUrl(MergeUtils.preferNewIfPresent(artist.getProfileImageUrl(), artistUpdateDto.getProfileImageUrl()));
+        Artist artist = artistRepository.findById(artistUpdateDto.getId()).orElseThrow(() -> new ArtistNotFoundException("Artist not with id '" + artistUpdateDto.getId() + "'not found"));
 
         String fileUrl = null;
         if (artistUpdateDto.getAvatarFile() != null && !artistUpdateDto.getAvatarFile().isEmpty()) {
@@ -116,6 +108,13 @@ public class ArtistServiceImpl implements ArtistService {
         }
 
         artist.setFileImageUrl(MergeUtils.preferNewIfPresent(artist.getFileImageUrl(), fileUrl));
+        artist.setStageName(MergeUtils.preferNewIfPresent(artist.getStageName(), artistUpdateDto.getStageName()));
+        artist.setRealName(MergeUtils.preferNewIfPresent(artist.getRealName(), artistUpdateDto.getRealName()));
+        artist.setBiography(MergeUtils.preferNewIfPresent(artist.getBiography(), artistUpdateDto.getBiography()));
+        artist.setCountry(MergeUtils.preferNewIfPresent(artist.getCountry(), artistUpdateDto.getCountry()));
+        artist.setCity(MergeUtils.preferNewIfPresent(artist.getCity(), artistUpdateDto.getCity()));
+        artist.setUpdatedAt(Instant.now());
+        artist.setProfileImageUrl(MergeUtils.preferNewIfPresent(artist.getProfileImageUrl(), artistUpdateDto.getProfileImageUrl()));
 
         log.info("Updated artist: {}", artist);
         return artistRepository.save(artist);
