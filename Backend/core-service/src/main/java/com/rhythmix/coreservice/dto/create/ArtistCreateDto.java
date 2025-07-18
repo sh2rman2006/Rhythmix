@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -29,5 +30,6 @@ public class ArtistCreateDto implements Serializable {
     @Size(max = 100)
     private String city;
     private MultipartFile avatarFile;
+    @URL(message = "Profile image URL must be a valid URL")
     private String profileImageUrl;
 }

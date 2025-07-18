@@ -31,7 +31,7 @@ public class TrackController {
 
     @Operation(summary = "Создать трек", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<TrackDto> createAlbum(@Valid @ModelAttribute TrackCreateDto trackCreateDto, Principal principal) {
         try {
             TrackDto trackDto = trackMapper.toDto(trackService.createTrack(trackCreateDto, principal));

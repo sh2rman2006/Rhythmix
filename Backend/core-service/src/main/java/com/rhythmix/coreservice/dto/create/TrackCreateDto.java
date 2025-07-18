@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -20,20 +21,19 @@ import java.util.UUID;
 @NoArgsConstructor
 @Accessors(chain = true)
 public class TrackCreateDto implements Serializable {
-    private UUID id;
     @NotNull
     @Size(max = 255)
     private String title;
     private String description;
     @NotNull
     private MultipartFile audioFile;
+    @URL(message = "Cover URL must be a valid URL")
     private String coverUrl;
     private MultipartFile coverFile;
     @NotNull
     private Boolean explicit = false;
     private LocalDate releaseDate;
     @NotNull
-    private UUID uploadedBy;
     private UUID artistId;
     private UUID albumId;
 }

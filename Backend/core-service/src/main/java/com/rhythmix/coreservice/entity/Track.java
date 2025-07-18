@@ -92,22 +92,17 @@ public class Track {
 
     @Override
     public String toString() {
-        return "Track{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", audioFile='" + audioFile + '\'' +
-                ", coverUrl='" + coverUrl + '\'' +
-                ", coverFile='" + coverFile + '\'' +
-                ", duration=" + duration +
-                ", explicit=" + explicit +
-                ", releaseDate=" + releaseDate +
-                ", uploadedAt=" + uploadedAt +
-                ", uploadedBy=" + uploadedBy +
-                ", artist=" + artist +
-                ", album=" + album +
-                ", playlistTracks=" + playlistTracks +
-                ", genres=" + genres +
-                '}';
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "title = " + title + ", " +
+                "description = " + description + ", " +
+                "audioFile = " + audioFile + ", " +
+                "coverUrl = " + coverUrl + ", " +
+                "coverFile = " + coverFile + ", " +
+                "duration = " + duration + ", " +
+                "explicit = " + explicit + ", " +
+                "releaseDate = " + releaseDate + ", " +
+                "uploadedAt = " + uploadedAt + ", " +
+                "uploadedBy = " + uploadedBy + ")";
     }
 }
