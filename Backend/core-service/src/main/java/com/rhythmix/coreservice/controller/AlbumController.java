@@ -29,7 +29,7 @@ public class AlbumController {
 
     @Operation(summary = "Создать альбом", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<AlbumDto> createAlbum(@Valid @ModelAttribute AlbumCreateDto albumCreateDto) {
         try {
             AlbumDto albumDto = albumMapper.toDto(albumService.createAlbum(albumCreateDto));

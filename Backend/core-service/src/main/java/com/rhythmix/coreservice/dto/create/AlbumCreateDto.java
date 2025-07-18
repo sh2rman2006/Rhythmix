@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -26,6 +27,7 @@ public class AlbumCreateDto implements Serializable {
     @Size(max = 255)
     private String title;
     private String description;
+    @URL(message = "Cover URL must be a valid URL")
     private String coverUrl;
     private MultipartFile coverFile;
     private LocalDate releaseDate;

@@ -73,4 +73,17 @@ public class Album {
     @OneToMany(mappedBy = "album")
     private Set<Track> tracks = new LinkedHashSet<>();
 
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "title = " + title + ", " +
+                "description = " + description + ", " +
+                "coverUrl = " + coverUrl + ", " +
+                "coverFile = " + coverFile + ", " +
+                "releaseDate = " + releaseDate + ", " +
+                "createdAt = " + createdAt + ", " +
+                "updatedAt = " + updatedAt + ")";
+    }
 }

@@ -25,6 +25,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Optional<RhythmixUser> getUser(Principal principal) {
-        return rhythmixUserRepository.findById(extractUserId(principal));
+        return rhythmixUserRepository.findByKeycloakId(extractUserId(principal));
     }
 }
