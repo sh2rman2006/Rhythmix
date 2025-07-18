@@ -2,7 +2,9 @@ package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.AlbumDto;
 import com.rhythmix.coreservice.dto.create.AlbumCreateDto;
+import com.rhythmix.coreservice.dto.update.AlbumUpdateDto;
 import com.rhythmix.coreservice.exception.AlbumAlreadyExistException;
+import com.rhythmix.coreservice.exception.AlbumNotFoundException;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.mapper.AlbumMapper;
 import com.rhythmix.coreservice.service.AlbumService;
@@ -13,10 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -35,6 +34,21 @@ public class AlbumController {
             AlbumDto albumDto = albumMapper.toDto(albumService.createAlbum(albumCreateDto));
             return ResponseEntity.ok(albumDto);
         } catch (IllegalContentTypeException | AlbumAlreadyExistException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Изменить альбом", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @PutMapping("/update")
+    public ResponseEntity<AlbumDto> updateAlbum(@Valid @ModelAttribute AlbumUpdateDto albumUpdateDto) {
+        try {
+            AlbumDto albumDto = albumMapper.toDto(albumService.updateAlbum(albumUpdateDto));
+            return ResponseEntity.ok(albumDto);
+        } catch (IllegalContentTypeException | AlbumNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error(e.getMessage());

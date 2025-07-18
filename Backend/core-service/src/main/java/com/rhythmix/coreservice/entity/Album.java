@@ -76,14 +76,15 @@ public class Album {
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + "(" +
-                "id = " + id + ", " +
-                "title = " + title + ", " +
-                "description = " + description + ", " +
-                "coverUrl = " + coverUrl + ", " +
-                "coverFile = " + coverFile + ", " +
-                "releaseDate = " + releaseDate + ", " +
-                "createdAt = " + createdAt + ", " +
-                "updatedAt = " + updatedAt + ")";
+        return "Album{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", coverUrl='" + coverUrl + '\'' +
+                ", coverFile='" + coverFile + '\'' +
+                ", releaseDate=" + releaseDate +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }

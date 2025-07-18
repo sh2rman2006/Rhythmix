@@ -92,9 +92,6 @@ public class Artist {
                 ", createdBy=" + createdBy +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
-                ", albums=" + albums +
-                ", genres=" + genres +
-                ", tracks=" + tracks +
                 '}';
     }
 }

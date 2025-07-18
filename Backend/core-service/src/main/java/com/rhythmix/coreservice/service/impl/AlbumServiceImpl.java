@@ -1,14 +1,17 @@
 package com.rhythmix.coreservice.service.impl;
 
 import com.rhythmix.coreservice.dto.create.AlbumCreateDto;
+import com.rhythmix.coreservice.dto.update.AlbumUpdateDto;
 import com.rhythmix.coreservice.entity.Album;
 import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.exception.AlbumAlreadyExistException;
+import com.rhythmix.coreservice.exception.AlbumNotFoundException;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.repository.AlbumRepository;
 import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.service.AlbumService;
 import com.rhythmix.coreservice.service.MinioService;
+import com.rhythmix.coreservice.utils.MergeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -75,5 +78,41 @@ public class AlbumServiceImpl implements AlbumService {
         Album savedAlbum = albumRepository.save(album);
         log.info("Created album: {}", savedAlbum);
         return savedAlbum;
+    }
+
+    @Override
+    @Transactional
+    public Album updateAlbum(AlbumUpdateDto albumUpdateDto) {
+        Album album = albumRepository.findWithArtistById(albumUpdateDto.getId()).orElseThrow(() -> new AlbumNotFoundException("Album with id '" + albumUpdateDto.getId() + "' not found."));
+
+        String fileUrl = null;
+        try {
+            if (albumUpdateDto.getCoverFile() != null && !albumUpdateDto.getCoverFile().isEmpty()) {
+                fileUrl = minioService.uploadMusicImage(
+                        albumUpdateDto.getCoverFile().getInputStream(),
+                        UUID.randomUUID().toString(),
+                        albumUpdateDto.getCoverFile().getContentType()
+                );
+                album.setCoverFile(fileUrl);
+            }
+        } catch (IOException e) {
+            log.error("Could not upload image to Minio: {}", e.getMessage(), e);
+        } catch (IllegalArgumentException e) {
+            log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
+            throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
+        } catch (Exception e) {
+            log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
+        }
+
+        album.setTitle(MergeUtils.preferNewIfPresent(album.getTitle(), albumUpdateDto.getTitle()));
+        album.setDescription(MergeUtils.preferNewIfPresent(album.getDescription(), albumUpdateDto.getDescription()));
+        album.setReleaseDate(MergeUtils.preferNewIfPresent(album.getReleaseDate(), albumUpdateDto.getReleaseDate()));
+        album.setUpdatedAt(Instant.now());
+        album.setCoverUrl(MergeUtils.preferNewIfPresent(album.getCoverUrl(), albumUpdateDto.getCoverUrl()));
+        album.setCoverFile(MergeUtils.preferNewIfPresent(album.getCoverFile(), fileUrl));
+
+        Album albumSaved = albumRepository.save(album);
+        log.info("Updated album: {}", albumSaved);
+        return albumSaved;
     }
 }

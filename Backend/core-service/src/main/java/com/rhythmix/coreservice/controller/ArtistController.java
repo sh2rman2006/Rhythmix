@@ -2,7 +2,9 @@ package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.ArtistDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
+import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
 import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
+import com.rhythmix.coreservice.exception.ArtistNotFoundException;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.mapper.ArtistMapper;
 import com.rhythmix.coreservice.service.ArtistService;
@@ -14,10 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.security.Principal;
@@ -46,4 +45,18 @@ public class ArtistController {
         }
     }
 
+    @Operation(summary = "изменить артиста", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ArtistDto> updateArtist(@Valid @ModelAttribute ArtistUpdateDto artistUpdateDto) {
+        try {
+            ArtistDto artistDto = artistMapper.toDto(artistService.updateArtist(artistUpdateDto));
+            return ResponseEntity.ok(artistDto);
+        } catch (IOException | IllegalContentTypeException | ArtistNotFoundException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

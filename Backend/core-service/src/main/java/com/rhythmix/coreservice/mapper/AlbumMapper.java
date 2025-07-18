@@ -47,4 +47,24 @@ public class AlbumMapper implements EntitiesMapper<Album, AlbumDto> {
                 .updatedAt(albumDto.getUpdatedAt())
                 .build();
     }
+
+    public AlbumDto toDtoWithoutArtist(@NotNull Album album) {
+        if (album == null) return null;
+        String coverUrl = album.getCoverUrl();
+        String fileCoverUrl = album.getCoverFile();
+        if ((coverUrl == null || coverUrl.isBlank()) && fileCoverUrl != null && !fileCoverUrl.isBlank()) {
+            coverUrl = minioService.generatePresignedUrl(fileCoverUrl, 60 * 60 * 24 * 7);
+        }
+
+        return new AlbumDto(
+                album.getId(),
+                album.getTitle(),
+                album.getDescription(),
+                coverUrl,
+                album.getReleaseDate(),
+                null,
+                album.getCreatedAt(),
+                album.getUpdatedAt()
+        );
+    }
 }

@@ -35,7 +35,7 @@ public class TrackMapper implements EntitiesMapper<Track, TrackDto> {
                 track.getReleaseDate(),
                 track.getUploadedAt(),
                 artistMapper.toDto(track.getArtist()),
-                albumMapper.toDto(track.getAlbum())
+                albumMapper.toDtoWithoutArtist(track.getAlbum())
         );
     }
 
