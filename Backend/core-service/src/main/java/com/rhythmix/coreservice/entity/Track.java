@@ -79,7 +79,7 @@ public class Track {
     @JoinColumn(name = "album_id")
     private Album album;
 
-    @OneToMany(mappedBy = "track")
+    @OneToMany(mappedBy = "track", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<PlaylistTrack> playlistTracks = new LinkedHashSet<>();
 
     @ManyToMany

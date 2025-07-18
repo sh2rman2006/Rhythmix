@@ -119,4 +119,11 @@ public class ArtistServiceImpl implements ArtistService {
         log.info("Updated artist: {}", artist);
         return artistRepository.save(artist);
     }
+
+    @Override
+    @Transactional
+    public void deleteArtist(UUID artistId) {
+        log.info("Deleting artist {}", artistId);
+        artistRepository.deleteById(artistId);
+    }
 }

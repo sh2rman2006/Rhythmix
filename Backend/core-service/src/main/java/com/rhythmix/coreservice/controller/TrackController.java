@@ -3,9 +3,7 @@ package com.rhythmix.coreservice.controller;
 import com.rhythmix.coreservice.dto.TrackDto;
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
-import com.rhythmix.coreservice.exception.AlbumAlreadyExistException;
-import com.rhythmix.coreservice.exception.AlbumNotFoundException;
-import com.rhythmix.coreservice.exception.IllegalContentTypeException;
+import com.rhythmix.coreservice.exception.*;
 import com.rhythmix.coreservice.mapper.TrackMapper;
 import com.rhythmix.coreservice.service.TrackService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -35,7 +33,7 @@ public class TrackController {
         try {
             TrackDto trackDto = trackMapper.toDto(trackService.createTrack(trackCreateDto, principal));
             return ResponseEntity.ok(trackDto);
-        } catch (IllegalContentTypeException | AlbumAlreadyExistException e) {
+        } catch (IllegalContentTypeException | TrackAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error(e.getMessage());
@@ -50,7 +48,7 @@ public class TrackController {
         try {
             TrackDto trackDto = trackMapper.toDto(trackService.updateTrack(trackUpdateDto));
             return ResponseEntity.ok(trackDto);
-        } catch (IllegalContentTypeException | AlbumNotFoundException e) {
+        } catch (IllegalContentTypeException | TrackNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error(e.getMessage());
