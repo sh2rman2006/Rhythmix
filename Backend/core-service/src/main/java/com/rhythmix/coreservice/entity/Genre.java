@@ -51,4 +51,11 @@ public class Genre {
     @ManyToMany(mappedBy = "genres")
     private Set<Track> tracks = new LinkedHashSet<>();
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "name = " + name + ", " +
+                "description = " + description + ")";
+    }
 }

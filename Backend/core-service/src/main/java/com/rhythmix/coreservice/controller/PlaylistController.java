@@ -34,7 +34,8 @@ public class PlaylistController {
 
     @Operation(summary = "Создать плейлист", description = "Доступно только для пользователей")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PlaylistDto> createPlaylist(@Valid @ModelAttribute PlaylistCreateDto playlistCreateDto, Principal principal) {
+    public ResponseEntity<PlaylistDto> createPlaylist(@Valid @ModelAttribute PlaylistCreateDto playlistCreateDto,
+                                                      Principal principal) {
         try {
             PlaylistDto playlistDto = playlistMapper.toDto(playlistService.createPlaylist(playlistCreateDto, principal));
             return ResponseEntity.ok(playlistDto);
@@ -48,7 +49,8 @@ public class PlaylistController {
 
     @Operation(summary = "Обновить плейлист", description = "Доступно только для владельца плейлиста")
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<PlaylistDto> updatePlaylist(@Valid @ModelAttribute PlaylistUpdateDto playlistUpdateDto, Principal principal) {
+    public ResponseEntity<PlaylistDto> updatePlaylist(@Valid @ModelAttribute PlaylistUpdateDto playlistUpdateDto,
+                                                      Principal principal) {
         try {
             PlaylistDto playlistDto = playlistMapper.toDto(playlistService.updatePlaylist(playlistUpdateDto, principal));
             return ResponseEntity.ok(playlistDto);
@@ -80,7 +82,8 @@ public class PlaylistController {
 
     @Operation(summary = "Добавить трек в плейлист", description = "Доступно только для владельца плейлиста")
     @PostMapping("/track")
-    public ResponseEntity<PlaylistTrackDto> addTrackToPlayList(@Valid @RequestBody AddTrackToPlaylistDto addTrackToPlaylistDto, Principal principal) {
+    public ResponseEntity<PlaylistTrackDto> addTrackToPlayList(@Valid @RequestBody AddTrackToPlaylistDto addTrackToPlaylistDto,
+                                                               Principal principal) {
         try {
             PlaylistTrackDto playlistTrackDto = playlistTrackMapper.toDto(
                     playlistService.addTrackToPlaylist(addTrackToPlaylistDto, principal)
@@ -94,6 +97,24 @@ public class PlaylistController {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("Unexpected error while adding track to playlist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Удалить трек из плейлиста", description = "Доступно только для владельца плейлиста")
+    @DeleteMapping("/{playlistId}/track/{trackId}")
+    public ResponseEntity<Void> deleteTrackFromPlaylist(@PathVariable UUID playlistId,
+                                                        @PathVariable UUID trackId,
+                                                        Principal principal) {
+        try {
+            playlistService.deleteTrackFromPlaylist(playlistId, trackId, principal);
+            return ResponseEntity.noContent().build();
+        } catch (PlaylistAccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (PlaylistTrackNotFoundException | PlaylistNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while deleting track from playlist", e);
             return ResponseEntity.internalServerError().build();
         }
     }

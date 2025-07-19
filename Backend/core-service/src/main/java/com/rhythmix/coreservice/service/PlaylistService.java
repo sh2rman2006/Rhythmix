@@ -20,4 +20,6 @@ public interface PlaylistService {
     void deletePlaylist(UUID playlistId, Principal principal);
 
     PlaylistTrack addTrackToPlaylist(AddTrackToPlaylistDto addTrackToPlaylistDto, Principal principal);
+
+    void deleteTrackFromPlaylist(UUID playlistId, UUID trackId, Principal principal);
 }
