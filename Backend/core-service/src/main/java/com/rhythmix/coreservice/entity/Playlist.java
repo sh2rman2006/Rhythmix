@@ -67,4 +67,19 @@ public class Playlist {
     @OneToMany(mappedBy = "playlist")
     private Set<PlaylistTrack> playlistTracks = new LinkedHashSet<>();
 
+    @Override
+    public String toString() {
+        return "Playlist{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", coverUrl='" + coverUrl + '\'' +
+                ", coverFile='" + coverFile + '\'' +
+                ", ownerId=" + ownerId +
+                ", isPublic=" + isPublic +
+                ", isSystem=" + isSystem +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

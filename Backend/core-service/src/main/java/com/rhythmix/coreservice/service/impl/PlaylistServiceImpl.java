@@ -48,4 +48,22 @@ public class PlaylistServiceImpl implements PlaylistService {
                         .build()
         );
     }
+
+    @Override
+    public Playlist createLikedPlaylistForUser(UUID userId) {
+        Instant now = Instant.now();
+        return playlistRepository.save(
+                Playlist.builder()
+                        .name("Понравившиеся")
+                        .description("Системный плейлист для понравившихся треков")
+                        .coverUrl(null)
+                        .coverFile(null)
+                        .ownerId(userId)
+                        .isPublic(false)
+                        .isSystem(true)
+                        .createdAt(now)
+                        .updatedAt(now)
+                        .build()
+        );
+    }
 }
