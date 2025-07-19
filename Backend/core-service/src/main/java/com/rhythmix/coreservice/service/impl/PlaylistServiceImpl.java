@@ -93,7 +93,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                 () -> new PlaylistNotFoundException("Playlist not found with id: " + playlistId));
 
         if (!playlist.getOwnerId().equals(userId) || playlist.getIsSystem()) {
-            throw new PlaylistAccessDeniedException("Access denied to update playlist with id: " + playlistId
+            throw new PlaylistAccessDeniedException("Access denied to delete playlist with id: " + playlistId
                     + " for user with id: " + userId);
         }
 
@@ -135,6 +135,29 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         log.info("Added track to playlist: {}", savedTrack);
         return savedTrack;
+    }
+
+    @Override
+    @Transactional
+    public void deleteTrackFromPlaylist(UUID playlistId, UUID trackId, Principal principal) {
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(
+                () -> new PlaylistNotFoundException("Playlist not found with id: " + playlistId));
+
+        UUID userId = SecurityUtils.extractUserId(principal);
+
+        if (!playlist.getOwnerId().equals(userId)) {
+            throw new PlaylistAccessDeniedException(
+                    "Access denied to delete track from playlist with id: " + playlistId + " for user with id: " + userId
+            );
+        }
+
+        PlaylistTrackId id = new PlaylistTrackId(playlist.getId(), trackId);
+        PlaylistTrack playlistTrackToDelete = playlistTrackRepository.findById(id).orElseThrow(
+                () -> new PlaylistTrackNotFoundException("Track not found with id: " + id)
+        );
+
+        playlistTrackRepository.delete(playlistTrackToDelete);
+        log.info("Removed track from playlist: {}", playlistTrackToDelete);
     }
 
     @Override
