@@ -69,6 +69,8 @@ public class ArtistController {
         try {
             artistService.deleteArtist(artistId);
             return ResponseEntity.noContent().build();
+        } catch (ArtistNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();

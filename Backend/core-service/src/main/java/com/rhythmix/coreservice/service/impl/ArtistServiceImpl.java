@@ -80,7 +80,10 @@ public class ArtistServiceImpl implements ArtistService {
     @Override
     @Transactional
     public void deleteArtist(UUID artistId) {
-        log.info("Deleting artist {}", artistId);
+        if (!artistRepository.existsById(artistId)) {
+            throw new ArtistNotFoundException("Artist not with id '" + artistId + "' not found");
+        }
         artistRepository.deleteById(artistId);
+        log.info("Deleting artist {}", artistId);
     }
 }

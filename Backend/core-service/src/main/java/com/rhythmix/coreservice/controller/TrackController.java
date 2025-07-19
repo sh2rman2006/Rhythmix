@@ -67,6 +67,8 @@ public class TrackController {
         try {
             trackService.deleteTrack(id);
             return ResponseEntity.noContent().build();
+        } catch (TrackNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
