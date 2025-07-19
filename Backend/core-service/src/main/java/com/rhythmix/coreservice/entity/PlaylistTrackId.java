@@ -44,4 +44,11 @@ public class PlaylistTrackId implements Serializable {
         return Objects.hash(playlistId, trackId);
     }
 
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "serialVersionUID = " + serialVersionUID + ", " +
+                "playlistId = " + playlistId + ", " +
+                "trackId = " + trackId + ")";
+    }
 }

@@ -1,13 +1,13 @@
 package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.PlaylistDto;
+import com.rhythmix.coreservice.dto.PlaylistTrackDto;
+import com.rhythmix.coreservice.dto.create.AddTrackToPlaylistDto;
 import com.rhythmix.coreservice.dto.create.PlaylistCreateDto;
 import com.rhythmix.coreservice.dto.update.PlaylistUpdateDto;
-import com.rhythmix.coreservice.exception.IllegalContentTypeException;
-import com.rhythmix.coreservice.exception.PlaylistAccessDeniedException;
-import com.rhythmix.coreservice.exception.PlaylistAlreadyExistException;
-import com.rhythmix.coreservice.exception.PlaylistNotFoundException;
+import com.rhythmix.coreservice.exception.*;
 import com.rhythmix.coreservice.mapper.PlaylistMapper;
+import com.rhythmix.coreservice.mapper.PlaylistTrackMapper;
 import com.rhythmix.coreservice.service.PlaylistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,6 +30,7 @@ import java.util.UUID;
 public class PlaylistController {
     private final PlaylistService playlistService;
     private final PlaylistMapper playlistMapper;
+    private final PlaylistTrackMapper playlistTrackMapper;
 
     @Operation(summary = "Создать плейлист", description = "Доступно только для пользователей")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -73,6 +74,26 @@ public class PlaylistController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Unexpected error while deleting playlist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Добавить трек в плейлист", description = "Доступно только для владельца плейлиста")
+    @PostMapping("/track")
+    public ResponseEntity<PlaylistTrackDto> addTrackToPlayList(@Valid @RequestBody AddTrackToPlaylistDto addTrackToPlaylistDto, Principal principal) {
+        try {
+            PlaylistTrackDto playlistTrackDto = playlistTrackMapper.toDto(
+                    playlistService.addTrackToPlaylist(addTrackToPlaylistDto, principal)
+            );
+            return ResponseEntity.ok(playlistTrackDto);
+        } catch (PlaylistAccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        } catch (PlaylistNotFoundException |
+                 TrackNotFoundException |
+                 TrackAlreadyInPlaylistException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while adding track to playlist", e);
             return ResponseEntity.internalServerError().build();
         }
     }
