@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public class PlaylistController {
     private final PlaylistMapper playlistMapper;
 
     @Operation(summary = "Создать плейлист", description = "Доступно только для пользователей")
-    @PostMapping("/create")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PlaylistDto> createPlaylist(@Valid @ModelAttribute PlaylistCreateDto playlistCreateDto, Principal principal) {
         try {
             PlaylistDto playlistDto = playlistMapper.toDto(playlistService.createPlaylist(playlistCreateDto, principal));
@@ -45,7 +46,7 @@ public class PlaylistController {
     }
 
     @Operation(summary = "Обновить плейлист", description = "Доступно только для владельца плейлиста")
-    @PutMapping("/update")
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PlaylistDto> updatePlaylist(@Valid @ModelAttribute PlaylistUpdateDto playlistUpdateDto, Principal principal) {
         try {
             PlaylistDto playlistDto = playlistMapper.toDto(playlistService.updatePlaylist(playlistUpdateDto, principal));
@@ -61,7 +62,7 @@ public class PlaylistController {
     }
 
     @Operation(summary = "Удалить плейлист", description = "Доступно только для владельца плейлиста")
-    @DeleteMapping("/delete/{playlistId}")
+    @DeleteMapping("/{playlistId}")
     public ResponseEntity<Void> deletePlaylist(@PathVariable UUID playlistId, Principal principal) {
         try {
             playlistService.deletePlaylist(playlistId, principal);

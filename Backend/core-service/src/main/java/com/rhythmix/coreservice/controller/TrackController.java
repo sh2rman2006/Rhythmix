@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class TrackController {
 
     @Operation(summary = "Создать трек", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PostMapping("/create")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TrackDto> createAlbum(@Valid @ModelAttribute TrackCreateDto trackCreateDto, Principal principal) {
         try {
             TrackDto trackDto = trackMapper.toDto(trackService.createTrack(trackCreateDto, principal));
@@ -47,7 +48,7 @@ public class TrackController {
 
     @Operation(summary = "Обновить трек", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PutMapping("/update")
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TrackDto> updateTrack(@Valid @ModelAttribute TrackUpdateDto trackUpdateDto) {
         try {
             TrackDto trackDto = trackMapper.toDto(trackService.updateTrack(trackUpdateDto));
@@ -62,7 +63,7 @@ public class TrackController {
 
     @Operation(summary = "Удалить трек", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @DeleteMapping("/delete/{trackId}")
+    @DeleteMapping("/{trackId}")
     public ResponseEntity<Void> deleteTrack(@PathVariable @NotNull UUID trackId) {
         try {
             trackService.deleteTrack(trackId);

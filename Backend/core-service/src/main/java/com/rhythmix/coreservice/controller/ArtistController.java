@@ -64,7 +64,7 @@ public class ArtistController {
 
     @Operation(summary = "Удалить артиста", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @DeleteMapping("/delete/{artistId}")
+    @DeleteMapping("/{artistId}")
     public ResponseEntity<Void> deleteArtist(@PathVariable @NotNull UUID artistId) {
         try {
             artistService.deleteArtist(artistId);
