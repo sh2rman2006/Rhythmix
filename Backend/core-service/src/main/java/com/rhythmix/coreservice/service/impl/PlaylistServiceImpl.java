@@ -1,12 +1,16 @@
 package com.rhythmix.coreservice.service.impl;
 
+import com.rhythmix.coreservice.dto.create.AddTrackToPlaylistDto;
 import com.rhythmix.coreservice.dto.create.PlaylistCreateDto;
 import com.rhythmix.coreservice.dto.update.PlaylistUpdateDto;
 import com.rhythmix.coreservice.entity.Playlist;
-import com.rhythmix.coreservice.exception.PlaylistAccessDeniedException;
-import com.rhythmix.coreservice.exception.PlaylistAlreadyExistException;
-import com.rhythmix.coreservice.exception.PlaylistNotFoundException;
+import com.rhythmix.coreservice.entity.PlaylistTrack;
+import com.rhythmix.coreservice.entity.PlaylistTrackId;
+import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.exception.*;
 import com.rhythmix.coreservice.repository.PlaylistRepository;
+import com.rhythmix.coreservice.repository.PlaylistTrackRepository;
+import com.rhythmix.coreservice.repository.TrackRepository;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.PlaylistService;
 import com.rhythmix.coreservice.utils.MergeUtils;
@@ -25,6 +29,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PlaylistServiceImpl implements PlaylistService {
     private final PlaylistRepository playlistRepository;
+    private final PlaylistTrackRepository playlistTrackRepository;
+    private final TrackRepository trackRepository;
     private final ImageUploadService imageUploadService;
 
     @Override
@@ -93,6 +99,42 @@ public class PlaylistServiceImpl implements PlaylistService {
 
         playlistRepository.deleteById(playlistId);
         log.info("User {} deleted playlist {}", userId, playlist);
+    }
+
+    @Override
+    @Transactional
+    public PlaylistTrack addTrackToPlaylist(AddTrackToPlaylistDto addTrackToPlaylistDto, Principal principal) {
+
+        Playlist playlist = playlistRepository.findById(addTrackToPlaylistDto.playlistId()).orElseThrow(
+                () -> new PlaylistNotFoundException("Playlist not found with id: " + addTrackToPlaylistDto.playlistId()));
+
+        Track track = trackRepository.findWithArtistAndAlbumById(addTrackToPlaylistDto.trackId()).orElseThrow(
+                () -> new TrackNotFoundException("Track not found with id: " + addTrackToPlaylistDto.trackId()));
+
+        UUID userId = SecurityUtils.extractUserId(principal);
+
+        if (!playlist.getOwnerId().equals(userId)) {
+            throw new PlaylistAccessDeniedException("Access denied to add track to playlist with id: "
+                    + addTrackToPlaylistDto.playlistId() + " for user with id: " + userId);
+        }
+
+        if (playlistTrackRepository.existsByPlaylistAndTrack(playlist, track)) {
+            throw new TrackAlreadyInPlaylistException("Track with id: " + addTrackToPlaylistDto.trackId()
+                    + " is already in playlist with id: " + addTrackToPlaylistDto.playlistId());
+        }
+
+        PlaylistTrackId id = new PlaylistTrackId(playlist.getId(), track.getId());
+        PlaylistTrack savedTrack = playlistTrackRepository.save(
+                new PlaylistTrack(
+                        id,
+                        playlist,
+                        track,
+                        Instant.now()
+                )
+        );
+
+        log.info("Added track to playlist: {}", savedTrack);
+        return savedTrack;
     }
 
     @Override

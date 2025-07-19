@@ -39,4 +39,11 @@ public class PlaylistTrack {
     @Column(name = "added_at", nullable = false)
     private Instant addedAt;
 
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "EmbeddedId = " + id + ", " +
+                "addedAt = " + addedAt + ")";
+    }
 }

@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +32,7 @@ public class AlbumController {
 
     @Operation(summary = "Создать альбом", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PostMapping("/create")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AlbumDto> createAlbum(@Valid @ModelAttribute AlbumCreateDto albumCreateDto) {
         try {
             AlbumDto albumDto = albumMapper.toDto(albumService.createAlbum(albumCreateDto));
@@ -39,14 +40,14 @@ public class AlbumController {
         } catch (IllegalContentTypeException | AlbumAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while creating album", e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @Operation(summary = "Изменить альбом", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PutMapping("/update")
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<AlbumDto> updateAlbum(@Valid @ModelAttribute AlbumUpdateDto albumUpdateDto) {
         try {
             AlbumDto albumDto = albumMapper.toDto(albumService.updateAlbum(albumUpdateDto));
@@ -54,14 +55,14 @@ public class AlbumController {
         } catch (IllegalContentTypeException | AlbumNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while updating album", e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @Operation(summary = "Удалить альбом", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @DeleteMapping("/delete/{albumId}")
+    @DeleteMapping("/{albumId}")
     public ResponseEntity<Void> deleteAlbum(@PathVariable @NotNull UUID albumId) {
         try {
             albumService.deleteAlbum(albumId);
@@ -69,7 +70,7 @@ public class AlbumController {
         } catch (AlbumNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while deleting album", e);
             return ResponseEntity.internalServerError().build();
         }
     }

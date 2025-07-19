@@ -34,7 +34,7 @@ public class ArtistController {
 
     @Operation(summary = "Создать артиста", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ArtistDto> createArtist(@Valid @ModelAttribute ArtistCreateDto artistCreateDto, Principal principal) {
         try {
             ArtistDto artistDto = artistMapper.toDto(artistService.createArtist(artistCreateDto, principal));
@@ -42,14 +42,14 @@ public class ArtistController {
         } catch (IOException | IllegalContentTypeException | ArtistAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while creating artist", e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @Operation(summary = "изменить артиста", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @PutMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ArtistDto> updateArtist(@Valid @ModelAttribute ArtistUpdateDto artistUpdateDto) {
         try {
             ArtistDto artistDto = artistMapper.toDto(artistService.updateArtist(artistUpdateDto));
@@ -57,14 +57,14 @@ public class ArtistController {
         } catch (IOException | IllegalContentTypeException | ArtistNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while updating artist", e);
             return ResponseEntity.internalServerError().build();
         }
     }
 
     @Operation(summary = "Удалить артиста", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @DeleteMapping("/delete/{artistId}")
+    @DeleteMapping("/{artistId}")
     public ResponseEntity<Void> deleteArtist(@PathVariable @NotNull UUID artistId) {
         try {
             artistService.deleteArtist(artistId);
@@ -72,7 +72,7 @@ public class ArtistController {
         } catch (ArtistNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while deleting artist", e);
             return ResponseEntity.internalServerError().build();
         }
     }
