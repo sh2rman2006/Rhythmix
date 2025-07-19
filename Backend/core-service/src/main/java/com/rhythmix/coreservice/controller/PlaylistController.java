@@ -2,6 +2,7 @@ package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.PlaylistDto;
 import com.rhythmix.coreservice.dto.create.PlaylistCreateDto;
+import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.exception.PlaylistAlreadyExistException;
 import com.rhythmix.coreservice.mapper.PlaylistMapper;
 import com.rhythmix.coreservice.service.PlaylistService;
@@ -33,7 +34,7 @@ public class PlaylistController {
         try {
             PlaylistDto playlistDto = playlistMapper.toDto(playlistService.createPlaylist(playlistCreateDto, principal));
             return ResponseEntity.ok(playlistDto);
-        } catch (IllegalArgumentException | PlaylistAlreadyExistException e) {
+        } catch (IllegalContentTypeException | PlaylistAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error(e.getMessage());
