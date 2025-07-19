@@ -117,6 +117,10 @@ public class TrackServiceImpl implements TrackService {
     @Override
     @Transactional
     public void deleteTrack(UUID trackId) {
+        if (!trackRepository.existsById(trackId)) {
+            throw new TrackNotFoundException("Track not found with id: " + trackId);
+        }
         trackRepository.deleteById(trackId);
+        log.info("Deleted track with id: {}", trackId);
     }
 }

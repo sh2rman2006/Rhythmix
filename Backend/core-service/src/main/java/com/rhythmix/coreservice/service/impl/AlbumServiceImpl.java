@@ -82,6 +82,10 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     @Transactional
     public void deleteAlbum(UUID albumId) {
+        if (!albumRepository.existsById(albumId)) {
+            throw new AlbumNotFoundException("Album with id '" + albumId + "' not found.");
+        }
         albumRepository.deleteById(albumId);
+        log.info("Deleted album: {}", albumId);
     }
 }

@@ -66,6 +66,8 @@ public class AlbumController {
         try {
             albumService.deleteAlbum(albumId);
             return ResponseEntity.noContent().build();
+        } catch (AlbumNotFoundException e) {
+            return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();

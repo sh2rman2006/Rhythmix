@@ -1,15 +1,20 @@
 package com.rhythmix.coreservice.service.impl;
 
 import com.rhythmix.coreservice.dto.create.PlaylistCreateDto;
+import com.rhythmix.coreservice.dto.update.PlaylistUpdateDto;
 import com.rhythmix.coreservice.entity.Playlist;
+import com.rhythmix.coreservice.exception.PlaylistAccessDeniedException;
 import com.rhythmix.coreservice.exception.PlaylistAlreadyExistException;
+import com.rhythmix.coreservice.exception.PlaylistNotFoundException;
 import com.rhythmix.coreservice.repository.PlaylistRepository;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.PlaylistService;
+import com.rhythmix.coreservice.utils.MergeUtils;
 import com.rhythmix.coreservice.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -47,6 +52,47 @@ public class PlaylistServiceImpl implements PlaylistService {
                         .updatedAt(now)
                         .build()
         );
+    }
+
+    @Override
+    public Playlist updatePlaylist(PlaylistUpdateDto playlistUpdateDto, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        Playlist playlist = playlistRepository.findById(playlistUpdateDto.getId()).orElseThrow(
+                () -> new PlaylistNotFoundException("Playlist not found with id: " + playlistUpdateDto.getId()));
+
+        if (!playlist.getOwnerId().equals(userId) || playlist.getIsSystem()) {
+            throw new PlaylistAccessDeniedException("Access denied to update playlist with id: " + playlistUpdateDto.getId()
+                    + " for user with id: " + userId);
+        }
+
+        String fileUrl = imageUploadService.uploadImageFile(playlistUpdateDto.getCoverFile(), UUID.randomUUID().toString());
+
+        playlist.setName(MergeUtils.preferNewIfPresent(playlist.getName(), playlistUpdateDto.getName()));
+        playlist.setDescription(MergeUtils.preferNewIfPresent(playlist.getDescription(), playlistUpdateDto.getDescription()));
+        playlist.setCoverUrl(MergeUtils.preferNewIfPresent(playlist.getCoverUrl(), playlistUpdateDto.getCoverUrl()));
+        playlist.setCoverFile(MergeUtils.preferNewIfPresent(playlist.getCoverFile(), fileUrl));
+        playlist.setIsPublic(MergeUtils.preferNewIfPresent(playlist.getIsPublic(), playlistUpdateDto.getIsPublic()));
+        playlist.setUpdatedAt(Instant.now());
+
+        Playlist updatedPlaylist = playlistRepository.save(playlist);
+        log.info("Updated playlist: {}", updatedPlaylist);
+        return updatedPlaylist;
+    }
+
+    @Override
+    @Transactional
+    public void deletePlaylist(UUID playlistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(
+                () -> new PlaylistNotFoundException("Playlist not found with id: " + playlistId));
+
+        if (!playlist.getOwnerId().equals(userId) || playlist.getIsSystem()) {
+            throw new PlaylistAccessDeniedException("Access denied to update playlist with id: " + playlistId
+                    + " for user with id: " + userId);
+        }
+
+        playlistRepository.deleteById(playlistId);
+        log.info("User {} deleted playlist {}", userId, playlist);
     }
 
     @Override
