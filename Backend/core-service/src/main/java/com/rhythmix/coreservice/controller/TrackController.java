@@ -62,10 +62,10 @@ public class TrackController {
 
     @Operation(summary = "Удалить трек", description = "Доступно только для модераторов")
     @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
-    @DeleteMapping("/delete/{id}")
-    public ResponseEntity<Void> deleteTrack(@PathVariable @NotNull UUID id) {
+    @DeleteMapping("/delete/{trackId}")
+    public ResponseEntity<Void> deleteTrack(@PathVariable @NotNull UUID trackId) {
         try {
-            trackService.deleteTrack(id);
+            trackService.deleteTrack(trackId);
             return ResponseEntity.noContent().build();
         } catch (TrackNotFoundException e) {
             return ResponseEntity.notFound().build();

@@ -3,6 +3,7 @@ package com.rhythmix.coreservice.controller;
 import com.rhythmix.coreservice.dto.RhythmixUserDto;
 import com.rhythmix.coreservice.mapper.RhythmixUserMapper;
 import com.rhythmix.coreservice.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import java.security.Principal;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/user")
+@Tag(name = "UserController", description = "API для работы с пользователями")
 public class UserController {
     private final RhythmixUserMapper rhythmixUserMapper;
     private final UserService userService;
