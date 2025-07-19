@@ -56,8 +56,9 @@ CREATE TABLE playlists
     name        VARCHAR(255)                NOT NULL,
     description TEXT,
     cover_url   TEXT,
+    cover_file  TEXT,
     owner_id    UUID                        NOT NULL,
-    is_public   BOOLEAN                     NOT NULL DEFAULT TRUE,
+    is_public   BOOLEAN                     NOT NULL DEFAULT FALSE,
     is_system   BOOLEAN                     NOT NULL DEFAULT FALSE,
     created_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()

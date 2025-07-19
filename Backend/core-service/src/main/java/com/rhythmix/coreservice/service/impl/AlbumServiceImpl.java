@@ -6,18 +6,16 @@ import com.rhythmix.coreservice.entity.Album;
 import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.exception.AlbumAlreadyExistException;
 import com.rhythmix.coreservice.exception.AlbumNotFoundException;
-import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.repository.AlbumRepository;
 import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.service.AlbumService;
-import com.rhythmix.coreservice.service.MinioService;
+import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.utils.MergeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -27,7 +25,7 @@ import java.util.UUID;
 public class AlbumServiceImpl implements AlbumService {
     private final AlbumRepository albumRepository;
     private final ArtistRepository artistRepository;
-    private final MinioService minioService;
+    private final ImageUploadService imageUploadService;
 
     @Override
     @Transactional
@@ -36,27 +34,9 @@ public class AlbumServiceImpl implements AlbumService {
             throw new AlbumAlreadyExistException("Album with title '" + albumCreateDto.getTitle() + "' already exists.");
         }
 
-        String coverUrl = albumCreateDto.getCoverUrl() == null
-                || albumCreateDto.getCoverUrl().isBlank()
-                ? null : albumCreateDto.getCoverUrl();
+        String coverUrl = imageUploadService.normalizeUrl(albumCreateDto.getCoverUrl());
 
-        String fileUrl = null;
-        try {
-            if (albumCreateDto.getCoverFile() != null && !albumCreateDto.getCoverFile().isEmpty()) {
-                fileUrl = minioService.uploadMusicImage(
-                        albumCreateDto.getCoverFile().getInputStream(),
-                        UUID.randomUUID().toString(),
-                        albumCreateDto.getCoverFile().getContentType()
-                );
-            }
-        } catch (IOException e) {
-            log.error("Could not upload image to Minio: {}", e.getMessage(), e);
-        } catch (IllegalArgumentException e) {
-            log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
-            throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
-        } catch (Exception e) {
-            log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
-        }
+        String fileUrl = imageUploadService.uploadImageFile(albumCreateDto.getCoverFile(), UUID.randomUUID().toString());
 
         Artist artist;
         if (albumCreateDto.getArtistId() == null) artist = null;
@@ -85,24 +65,7 @@ public class AlbumServiceImpl implements AlbumService {
     public Album updateAlbum(AlbumUpdateDto albumUpdateDto) {
         Album album = albumRepository.findWithArtistById(albumUpdateDto.getId()).orElseThrow(() -> new AlbumNotFoundException("Album with id '" + albumUpdateDto.getId() + "' not found."));
 
-        String fileUrl = null;
-        try {
-            if (albumUpdateDto.getCoverFile() != null && !albumUpdateDto.getCoverFile().isEmpty()) {
-                fileUrl = minioService.uploadMusicImage(
-                        albumUpdateDto.getCoverFile().getInputStream(),
-                        UUID.randomUUID().toString(),
-                        albumUpdateDto.getCoverFile().getContentType()
-                );
-                album.setCoverFile(fileUrl);
-            }
-        } catch (IOException e) {
-            log.error("Could not upload image to Minio: {}", e.getMessage(), e);
-        } catch (IllegalArgumentException e) {
-            log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
-            throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
-        } catch (Exception e) {
-            log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
-        }
+        String fileUrl = imageUploadService.uploadImageFile(albumUpdateDto.getCoverFile(), UUID.randomUUID().toString());
 
         album.setTitle(MergeUtils.preferNewIfPresent(album.getTitle(), albumUpdateDto.getTitle()));
         album.setDescription(MergeUtils.preferNewIfPresent(album.getDescription(), albumUpdateDto.getDescription()));

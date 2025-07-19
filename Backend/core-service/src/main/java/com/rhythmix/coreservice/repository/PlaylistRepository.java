@@ -8,4 +8,6 @@ import java.util.UUID;
 
 @Repository
 public interface PlaylistRepository extends JpaRepository<Playlist, UUID> {
+
+    boolean existsByNameIgnoreCase(String name);
 }

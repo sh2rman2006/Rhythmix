@@ -9,18 +9,15 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class TrackMapper implements EntitiesMapper<Track, TrackDto> {
-    private final MinioService minioService;
+    private final CoverUrlResolver coverUrlResolver;
     private final ArtistMapper artistMapper;
     private final AlbumMapper albumMapper;
+    private final MinioService minioService;
 
     @Override
     public TrackDto toDto(Track track) {
         if (track == null) return null;
-        String coverUrl = track.getCoverUrl();
-        String fileCoverUrl = track.getCoverFile();
-        if ((coverUrl == null || coverUrl.isBlank()) && fileCoverUrl != null && !fileCoverUrl.isBlank()) {
-            coverUrl = minioService.generatePresignedUrl(fileCoverUrl, 60 * 60 * 24 * 7);
-        }
+        String coverUrl = coverUrlResolver.resolveCoverUrl(track.getCoverUrl(), track.getCoverFile());
 
         String audioUrl = minioService.generatePresignedUrl(track.getAudioFile(), 60 * 60 * 24 * 7);
 

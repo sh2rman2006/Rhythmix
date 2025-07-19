@@ -37,6 +37,9 @@ public class Playlist {
     @Column(name = "cover_url", length = Integer.MAX_VALUE)
     private String coverUrl;
 
+    @Column(name = "cover_file", length = Integer.MAX_VALUE)
+    private String coverFile;
+
     @NotNull
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;

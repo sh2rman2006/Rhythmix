@@ -5,19 +5,18 @@ import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
 import com.rhythmix.coreservice.entity.Album;
 import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.entity.Track;
-import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.exception.TrackAlreadyExistException;
 import com.rhythmix.coreservice.exception.TrackNotFoundException;
 import com.rhythmix.coreservice.repository.AlbumRepository;
 import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.repository.TrackRepository;
+import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.MinioService;
 import com.rhythmix.coreservice.service.TrackService;
 import com.rhythmix.coreservice.utils.MergeUtils;
+import com.rhythmix.coreservice.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,12 +34,7 @@ public class TrackServiceImpl implements TrackService {
     private final AlbumRepository albumRepository;
     private final ArtistRepository artistRepository;
     private final MinioService minioService;
-
-    private UUID extractUserId(Principal principal) {
-        var token = (JwtAuthenticationToken) principal;
-        Jwt jwt = (Jwt) token.getPrincipal();
-        return UUID.fromString(jwt.getSubject());
-    }
+    private final ImageUploadService imageUploadService;
 
 
     @Override
@@ -50,29 +44,8 @@ public class TrackServiceImpl implements TrackService {
             throw new TrackAlreadyExistException("Track with title '" + trackCreateDto.getTitle() + "' already exists.");
         }
 
-        String coverUrl = trackCreateDto.getCoverUrl() == null
-                || trackCreateDto.getCoverUrl().isBlank()
-                ? null : trackCreateDto.getCoverUrl();
-
-        String coverFile = null;
-
-        try {
-            if (trackCreateDto.getCoverFile() != null && !trackCreateDto.getCoverFile().isEmpty()) {
-                coverFile = minioService.uploadMusicImage(
-                        trackCreateDto.getCoverFile().getInputStream(),
-                        trackCreateDto.getTitle(),
-                        trackCreateDto.getCoverFile().getContentType()
-                );
-
-            }
-        } catch (IOException e) {
-            log.error("Could not upload image to Minio: {}", e.getMessage(), e);
-        } catch (IllegalArgumentException e) {
-            log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
-            throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
-        } catch (Exception e) {
-            log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
-        }
+        String coverUrl = imageUploadService.normalizeUrl(trackCreateDto.getCoverUrl());
+        String coverFile = imageUploadService.uploadImageFile(trackCreateDto.getCoverFile(), UUID.randomUUID().toString());
 
         if (trackCreateDto.getAudioFile() == null) throw new IllegalArgumentException("No audio file provided.");
 
@@ -103,7 +76,7 @@ public class TrackServiceImpl implements TrackService {
                 .explicit(trackCreateDto.getExplicit())
                 .releaseDate(trackCreateDto.getReleaseDate())
                 .uploadedAt(now)
-                .uploadedBy(extractUserId(principal))
+                .uploadedBy(SecurityUtils.extractUserId(principal))
                 .artist(artist)
                 .album(album)
                 .build();
@@ -120,24 +93,7 @@ public class TrackServiceImpl implements TrackService {
         Track track = trackRepository.findWithArtistAndAlbumById(trackUpdateDto.getId())
                 .orElseThrow(() -> new TrackNotFoundException("Track not found with id: " + trackUpdateDto.getId() + "not found"));
 
-        String coverFile = null;
-        try {
-            if (trackUpdateDto.getCoverFile() != null && !trackUpdateDto.getCoverFile().isEmpty()) {
-                coverFile = minioService.uploadMusicImage(
-                        trackUpdateDto.getCoverFile().getInputStream(),
-                        trackUpdateDto.getTitle(),
-                        trackUpdateDto.getCoverFile().getContentType()
-                );
-
-            }
-        } catch (IOException e) {
-            log.error("Could not upload image to Minio: {}", e.getMessage(), e);
-        } catch (IllegalArgumentException e) {
-            log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
-            throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
-        } catch (Exception e) {
-            log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
-        }
+        String coverFile = imageUploadService.uploadImageFile(trackUpdateDto.getCoverFile(), UUID.randomUUID().toString());
 
         Album album = albumRepository.findWithArtistById(trackUpdateDto.getAlbumId()).orElse(null);
         if (album != null && album.getArtist().getId().equals(track.getArtist().getId())) {
