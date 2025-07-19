@@ -40,7 +40,7 @@ public class AlbumController {
         } catch (IllegalContentTypeException | AlbumAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while creating album", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -55,7 +55,7 @@ public class AlbumController {
         } catch (IllegalContentTypeException | AlbumNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while updating album", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -70,7 +70,7 @@ public class AlbumController {
         } catch (AlbumNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while deleting album", e);
             return ResponseEntity.internalServerError().build();
         }
     }

@@ -41,7 +41,7 @@ public class TrackController {
         } catch (IllegalContentTypeException | TrackAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while creating track", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -56,7 +56,7 @@ public class TrackController {
         } catch (IllegalContentTypeException | TrackNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while updating track", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -71,7 +71,7 @@ public class TrackController {
         } catch (TrackNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while deleting track", e);
             return ResponseEntity.internalServerError().build();
         }
     }

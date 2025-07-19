@@ -40,7 +40,7 @@ public class PlaylistController {
         } catch (IllegalContentTypeException | PlaylistAlreadyExistException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while creating playlist", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -56,7 +56,7 @@ public class PlaylistController {
         } catch (PlaylistAccessDeniedException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while updating playlist", e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -72,7 +72,7 @@ public class PlaylistController {
         } catch (PlaylistNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error("Unexpected error while deleting playlist", e);
             return ResponseEntity.internalServerError().build();
         }
     }
