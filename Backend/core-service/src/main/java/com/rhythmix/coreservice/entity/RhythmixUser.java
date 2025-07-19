@@ -55,4 +55,17 @@ public class RhythmixUser {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
+    @Override
+    public String toString() {
+        return "RhythmixUser{" +
+                "id=" + id +
+                ", keycloakId=" + keycloakId +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

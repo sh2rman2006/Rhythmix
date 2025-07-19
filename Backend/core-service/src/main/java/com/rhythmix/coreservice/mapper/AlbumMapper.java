@@ -2,7 +2,6 @@ package com.rhythmix.coreservice.mapper;
 
 import com.rhythmix.coreservice.dto.AlbumDto;
 import com.rhythmix.coreservice.entity.Album;
-import com.rhythmix.coreservice.service.MinioService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -11,16 +10,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class AlbumMapper implements EntitiesMapper<Album, AlbumDto> {
     private final ArtistMapper artistMapper;
-    private final MinioService minioService;
+    private final CoverUrlResolver coverUrlResolver;
 
     @Override
     public AlbumDto toDto(@NotNull Album album) {
         if (album == null) return null;
-        String coverUrl = album.getCoverUrl();
-        String fileCoverUrl = album.getCoverFile();
-        if ((coverUrl == null || coverUrl.isBlank()) && fileCoverUrl != null && !fileCoverUrl.isBlank()) {
-            coverUrl = minioService.generatePresignedUrl(fileCoverUrl, 60 * 60 * 24 * 7);
-        }
+        String coverUrl = coverUrlResolver.resolveCoverUrl(album.getCoverUrl(), album.getCoverUrl());
 
         return new AlbumDto(
                 album.getId(),
@@ -50,11 +45,7 @@ public class AlbumMapper implements EntitiesMapper<Album, AlbumDto> {
 
     public AlbumDto toDtoWithoutArtist(@NotNull Album album) {
         if (album == null) return null;
-        String coverUrl = album.getCoverUrl();
-        String fileCoverUrl = album.getCoverFile();
-        if ((coverUrl == null || coverUrl.isBlank()) && fileCoverUrl != null && !fileCoverUrl.isBlank()) {
-            coverUrl = minioService.generatePresignedUrl(fileCoverUrl, 60 * 60 * 24 * 7);
-        }
+        String coverUrl = coverUrlResolver.resolveCoverUrl(album.getCoverUrl(), album.getCoverUrl());
 
         return new AlbumDto(
                 album.getId(),

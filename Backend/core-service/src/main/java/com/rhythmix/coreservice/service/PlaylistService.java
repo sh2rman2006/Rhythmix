@@ -1,0 +1,14 @@
+package com.rhythmix.coreservice.service;
+
+import com.rhythmix.coreservice.dto.create.PlaylistCreateDto;
+import com.rhythmix.coreservice.entity.Playlist;
+
+import java.security.Principal;
+import java.util.UUID;
+
+public interface PlaylistService {
+
+    Playlist createPlaylist(PlaylistCreateDto playlistCreateDto, Principal principal);
+
+    Playlist createLikedPlaylistForUser(UUID userId);
+}

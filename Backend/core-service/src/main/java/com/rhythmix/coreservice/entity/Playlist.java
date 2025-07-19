@@ -37,6 +37,9 @@ public class Playlist {
     @Column(name = "cover_url", length = Integer.MAX_VALUE)
     private String coverUrl;
 
+    @Column(name = "cover_file", length = Integer.MAX_VALUE)
+    private String coverFile;
+
     @NotNull
     @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
@@ -64,4 +67,19 @@ public class Playlist {
     @OneToMany(mappedBy = "playlist")
     private Set<PlaylistTrack> playlistTracks = new LinkedHashSet<>();
 
+    @Override
+    public String toString() {
+        return "Playlist{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", coverUrl='" + coverUrl + '\'' +
+                ", coverFile='" + coverFile + '\'' +
+                ", ownerId=" + ownerId +
+                ", isPublic=" + isPublic +
+                ", isSystem=" + isSystem +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

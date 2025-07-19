@@ -5,19 +5,16 @@ import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
 import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
 import com.rhythmix.coreservice.exception.ArtistNotFoundException;
-import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.service.ArtistService;
-import com.rhythmix.coreservice.service.MinioService;
+import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.utils.MergeUtils;
+import com.rhythmix.coreservice.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
 import java.security.Principal;
 import java.time.Instant;
 import java.util.UUID;
@@ -27,13 +24,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ArtistServiceImpl implements ArtistService {
     private final ArtistRepository artistRepository;
-    private final MinioService minioService;
-
-    private UUID extractUserId(Principal principal) {
-        var token = (JwtAuthenticationToken) principal;
-        Jwt jwt = (Jwt) token.getPrincipal();
-        return UUID.fromString(jwt.getSubject());
-    }
+    private final ImageUploadService imageUploadService;
 
     @Override
     @Transactional
@@ -43,28 +34,9 @@ public class ArtistServiceImpl implements ArtistService {
             throw new ArtistAlreadyExistException("Stage name already exists");
         }
 
-        String profileUrl = artistCreateDto.getProfileImageUrl() == null
-                || artistCreateDto.getProfileImageUrl().isBlank()
-                ? null : artistCreateDto.getProfileImageUrl();
-
-        String fileUrl = null;
-        try {
-            if (artistCreateDto.getAvatarFile() != null && !artistCreateDto.getAvatarFile().isEmpty()) {
-                fileUrl = minioService.uploadMusicImage(
-                        artistCreateDto.getAvatarFile().getInputStream(),
-                        UUID.randomUUID().toString(),
-                        artistCreateDto.getAvatarFile().getContentType());
-            }
-        } catch (IOException e) {
-            log.error("Could not upload image to Minio: {}", e.getMessage(), e);
-        } catch (IllegalArgumentException e) {
-            log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
-            throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
-        } catch (Exception e) {
-            log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
-        }
-
-        UUID ownerId = extractUserId(principal);
+        String profileUrl = imageUploadService.normalizeUrl(artistCreateDto.getProfileImageUrl());
+        String fileUrl = imageUploadService.uploadImageFile(artistCreateDto.getAvatarFile(), UUID.randomUUID().toString());
+        UUID ownerId = SecurityUtils.extractUserId(principal);
         Instant now = Instant.now();
 
         Artist artist = artistRepository.save(
@@ -90,22 +62,7 @@ public class ArtistServiceImpl implements ArtistService {
     public Artist updateArtist(ArtistUpdateDto artistUpdateDto) {
         Artist artist = artistRepository.findById(artistUpdateDto.getId()).orElseThrow(() -> new ArtistNotFoundException("Artist not with id '" + artistUpdateDto.getId() + "'not found"));
 
-        String fileUrl = null;
-        if (artistUpdateDto.getAvatarFile() != null && !artistUpdateDto.getAvatarFile().isEmpty()) {
-            try {
-                fileUrl = minioService.uploadMusicImage(
-                        artistUpdateDto.getAvatarFile().getInputStream(),
-                        UUID.randomUUID().toString(),
-                        artistUpdateDto.getAvatarFile().getContentType());
-            } catch (IOException e) {
-                log.error("Could not upload image to Minio: {}", e.getMessage(), e);
-            } catch (IllegalArgumentException e) {
-                log.error("Not valid ContentType for upload image to Minio: {}", e.getMessage(), e);
-                throw new IllegalContentTypeException("Not valid ContentType for upload image to Minio");
-            } catch (Exception e) {
-                log.error("Unexpected error occurred while uploading image to Minio: {}", e.getMessage(), e);
-            }
-        }
+        String fileUrl = imageUploadService.uploadImageFile(artistUpdateDto.getAvatarFile(), UUID.randomUUID().toString());
 
         artist.setFileImageUrl(MergeUtils.preferNewIfPresent(artist.getFileImageUrl(), fileUrl));
         artist.setStageName(MergeUtils.preferNewIfPresent(artist.getStageName(), artistUpdateDto.getStageName()));
