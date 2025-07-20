@@ -2,7 +2,6 @@ package com.rhythmix.coreservice.mapper;
 
 import com.rhythmix.coreservice.dto.ArtistDto;
 import com.rhythmix.coreservice.entity.Artist;
-import com.rhythmix.coreservice.entity.Genre;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
