@@ -18,4 +18,6 @@ public interface ArtistService {
     void deleteArtist(UUID artistId);
 
     Artist addGenres(AddGenreToEntityDto addGenreToEntityDto);
+
+    Artist removeGenre(UUID genreId, UUID artistId);
 }

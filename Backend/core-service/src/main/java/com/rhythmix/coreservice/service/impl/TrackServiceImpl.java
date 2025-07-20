@@ -7,6 +7,7 @@ import com.rhythmix.coreservice.entity.Album;
 import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.entity.Genre;
 import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.exception.TrackAlreadyExistException;
 import com.rhythmix.coreservice.exception.TrackNotFoundException;
 import com.rhythmix.coreservice.repository.AlbumRepository;
@@ -145,5 +146,23 @@ public class TrackServiceImpl implements TrackService {
         Track updatedTrack = trackRepository.save(track);
         log.info("Updated track with genres: {}", updatedTrack);
         return updatedTrack;
+    }
+
+    @Override
+    @Transactional
+    public Track removeGenreFromTrack(UUID trackGenreId, UUID trackId) {
+        Track track = trackRepository.findWithRelationsById(trackId).orElseThrow(
+                () -> new TrackNotFoundException("Track not found with id '" + trackId + "'")
+        );
+
+        Genre genreToRemove = genreRepository.findById(trackGenreId).orElseThrow(
+                () -> new GenreNotFoundException("Genre not found with id '" + trackGenreId + "'")
+        );
+
+        track.getGenres().remove(genreToRemove);
+        genreToRemove.getTracks().remove(track);
+
+        log.info("Removed genre from track: {}", track);
+        return track;
     }
 }

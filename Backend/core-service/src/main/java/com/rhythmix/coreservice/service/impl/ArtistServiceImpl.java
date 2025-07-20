@@ -7,6 +7,7 @@ import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.entity.Genre;
 import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
 import com.rhythmix.coreservice.exception.ArtistNotFoundException;
+import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.repository.GenreRepository;
 import com.rhythmix.coreservice.service.ArtistService;
@@ -109,5 +110,22 @@ public class ArtistServiceImpl implements ArtistService {
         Artist updatedArtist = artistRepository.save(artist);
         log.info("Updated artist with genres: {}", updatedArtist);
         return updatedArtist;
+    }
+
+    @Override
+    @Transactional
+    public Artist removeGenre(UUID genreId, UUID artistId) {
+        Artist artist = artistRepository.findWithGenresById(artistId).orElseThrow(
+                () -> new ArtistNotFoundException("Artist not found with id '" + genreId + "'")
+        );
+
+        Genre genre = genreRepository.findById(genreId).orElseThrow(
+                () -> new GenreNotFoundException("Genre not found with id '" + genreId + "'")
+        );
+
+        artist.getGenres().remove(genre);
+        genre.getArtists().remove(artist);
+        log.info("Removed artist with genres: {}", artist);
+        return artist;
     }
 }

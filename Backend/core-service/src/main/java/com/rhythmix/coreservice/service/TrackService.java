@@ -18,4 +18,6 @@ public interface TrackService {
     void deleteTrack(UUID trackId);
 
     Track addGenreToTrack(AddGenreToEntityDto addGenreToEntityDto);
+
+    Track removeGenreFromTrack(UUID trackGenreId, UUID trackId);
 }
