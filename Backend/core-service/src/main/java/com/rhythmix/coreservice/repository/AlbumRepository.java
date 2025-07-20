@@ -19,4 +19,7 @@ public interface AlbumRepository extends JpaRepository<Album, UUID> {
 
     @EntityGraph(attributePaths = {"artist"})
     Optional<Album> findWithArtistById(@NotNull UUID id);
+
+    @EntityGraph(attributePaths = {"artist", "tracks"})
+    Optional<Album> findWithArtistAndTracksById(@NotNull UUID id);
 }

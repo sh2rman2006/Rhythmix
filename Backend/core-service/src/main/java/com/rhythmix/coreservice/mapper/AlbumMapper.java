@@ -23,7 +23,7 @@ public class AlbumMapper implements EntitiesMapper<Album, AlbumDto> {
                 album.getDescription(),
                 coverUrl,
                 album.getReleaseDate(),
-                album.getArtist() != null ? artistMapper.toDto(album.getArtist()) : null,
+                album.getArtist() != null ? artistMapper.toDtoWithoutGenres(album.getArtist()) : null,
                 album.getCreatedAt(),
                 album.getUpdatedAt()
         );

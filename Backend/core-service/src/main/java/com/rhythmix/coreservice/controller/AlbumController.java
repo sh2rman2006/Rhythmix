@@ -1,11 +1,10 @@
 package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.AlbumDto;
+import com.rhythmix.coreservice.dto.create.AddTrackToAlbumDto;
 import com.rhythmix.coreservice.dto.create.AlbumCreateDto;
 import com.rhythmix.coreservice.dto.update.AlbumUpdateDto;
-import com.rhythmix.coreservice.exception.AlbumAlreadyExistException;
-import com.rhythmix.coreservice.exception.AlbumNotFoundException;
-import com.rhythmix.coreservice.exception.IllegalContentTypeException;
+import com.rhythmix.coreservice.exception.*;
 import com.rhythmix.coreservice.mapper.AlbumMapper;
 import com.rhythmix.coreservice.service.AlbumService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -71,6 +70,40 @@ public class AlbumController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Unexpected error while deleting album", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Добавить трек в альбом", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @PostMapping("/track")
+    public ResponseEntity<AlbumDto> addTrackToAlbum(@Valid @RequestBody AddTrackToAlbumDto addTrackToAlbumDto) {
+        try {
+            AlbumDto albumDto = albumMapper.toDto(albumService.addTrackToAlbum(addTrackToAlbumDto.trackId(), addTrackToAlbumDto.albumId()));
+            return ResponseEntity.ok(albumDto);
+        } catch (AlbumNotFoundException | TrackNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (TrackAlreadyInAlbumException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while adding track to album", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Удалить трек из альбома", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @DeleteMapping("/{albumId}/track/{trackId}")
+    public ResponseEntity<Void> removeTrackFromAlbum(@PathVariable @NotNull UUID albumId, @PathVariable @NotNull UUID trackId) {
+        try {
+            albumService.removeTrackFromAlbum(trackId, albumId);
+            return ResponseEntity.noContent().build();
+        } catch (AlbumNotFoundException | TrackNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (TrackNotInAlbumException | InconsistentArtistException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while removing track from album", e);
             return ResponseEntity.internalServerError().build();
         }
     }

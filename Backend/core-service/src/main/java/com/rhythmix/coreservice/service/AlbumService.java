@@ -14,4 +14,7 @@ public interface AlbumService {
 
     void deleteAlbum(UUID albumId);
 
+    Album addTrackToAlbum(UUID trackId, UUID albumId);
+
+    void removeTrackFromAlbum(UUID trackId, UUID albumId);
 }
