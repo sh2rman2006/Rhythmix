@@ -10,6 +10,7 @@ import lombok.experimental.Accessors;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -37,4 +38,5 @@ public class TrackDto implements Serializable {
     @NotNull
     private ArtistDto artist;
     private AlbumDto album;
+    private List<GenreDto> genres;
 }

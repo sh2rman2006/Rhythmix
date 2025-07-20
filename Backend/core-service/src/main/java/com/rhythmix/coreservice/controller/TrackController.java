@@ -1,6 +1,7 @@
 package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.TrackDto;
+import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
@@ -70,6 +71,21 @@ public class TrackController {
             return ResponseEntity.noContent().build();
         } catch (TrackNotFoundException e) {
             return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while deleting track", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Добавить жанры к треку", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @PostMapping("/genres")
+    public ResponseEntity<TrackDto> addGenres(@Valid @RequestBody AddGenreToEntityDto dto) {
+        try {
+            TrackDto trackDto = trackMapper.toDto(trackService.addGenreToTrack(dto));
+            return ResponseEntity.ok(trackDto);
+        } catch (TrackNotFoundException e) {
+            return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("Unexpected error while deleting track", e);
             return ResponseEntity.internalServerError().build();
