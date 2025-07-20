@@ -5,10 +5,7 @@ import com.rhythmix.coreservice.dto.update.AlbumUpdateDto;
 import com.rhythmix.coreservice.entity.Album;
 import com.rhythmix.coreservice.entity.Artist;
 import com.rhythmix.coreservice.entity.Track;
-import com.rhythmix.coreservice.exception.AlbumAlreadyExistException;
-import com.rhythmix.coreservice.exception.AlbumNotFoundException;
-import com.rhythmix.coreservice.exception.TrackNotFoundException;
-import com.rhythmix.coreservice.exception.TrackNotInAlbumException;
+import com.rhythmix.coreservice.exception.*;
 import com.rhythmix.coreservice.repository.AlbumRepository;
 import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.repository.TrackRepository;
@@ -96,7 +93,7 @@ public class AlbumServiceImpl implements AlbumService {
 
     @Override
     @Transactional
-    public Album addAlbumToTrack(UUID albumId, UUID trackId) {
+    public Album addTrackToAlbum(UUID trackId, UUID albumId) {
         Album targetAlbum = albumRepository.findWithArtistById(albumId).orElseThrow(
                 () -> new AlbumNotFoundException("Album with id '" + albumId + "' not found.")
         );
@@ -105,8 +102,16 @@ public class AlbumServiceImpl implements AlbumService {
                 () -> new TrackNotFoundException("Track with id '" + trackId + "' not found.")
         );
 
+        if (!targetAlbum.getArtist().equals(track.getArtist())) {
+            throw new InconsistentArtistException("Artist in album id: " + targetAlbum.getArtist().getId()
+            + " and track artist id: " + track.getArtist().getId());
+        }
+
         Album currentAlbum = track.getAlbum();
-        if (currentAlbum != null && !currentAlbum.equals(targetAlbum)) {
+
+        if (currentAlbum != null && currentAlbum.equals(targetAlbum)) {
+            throw new TrackAlreadyInAlbumException("Track with id: " + trackId + " is already in album.");
+        } else if (currentAlbum != null && !currentAlbum.equals(targetAlbum)) {
             currentAlbum.getTracks().remove(track);
         }
 
@@ -118,7 +123,7 @@ public class AlbumServiceImpl implements AlbumService {
 
     @Override
     @Transactional
-    public void removeTrackFromAlbum(UUID albumId, UUID trackId) {
+    public void removeTrackFromAlbum(UUID trackId, UUID albumId) {
         Album album = albumRepository.findWithArtistById(albumId).orElseThrow(
                 () -> new AlbumNotFoundException("Album with id '" + albumId + "' not found.")
         );
