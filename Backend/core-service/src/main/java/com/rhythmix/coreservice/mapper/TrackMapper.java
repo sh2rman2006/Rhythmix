@@ -13,6 +13,7 @@ public class TrackMapper implements EntitiesMapper<Track, TrackDto> {
     private final ArtistMapper artistMapper;
     private final AlbumMapper albumMapper;
     private final MinioService minioService;
+    private final GenreMapper genreMapper;
 
     @Override
     public TrackDto toDto(Track track) {
@@ -31,8 +32,10 @@ public class TrackMapper implements EntitiesMapper<Track, TrackDto> {
                 track.getExplicit(),
                 track.getReleaseDate(),
                 track.getUploadedAt(),
-                artistMapper.toDto(track.getArtist()),
-                albumMapper.toDtoWithoutArtist(track.getAlbum())
+                artistMapper.toDtoWithoutGenres(track.getArtist()),
+                albumMapper.toDtoWithoutArtist(track.getAlbum()),
+                track.getGenres() != null && !track.getGenres().isEmpty()
+                        ? genreMapper.toDtoList(track.getGenres()) : null
         );
     }
 

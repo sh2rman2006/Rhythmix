@@ -1,11 +1,15 @@
 package com.rhythmix.coreservice.service.impl;
 
+import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
 import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
 import com.rhythmix.coreservice.entity.Artist;
+import com.rhythmix.coreservice.entity.Genre;
 import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
 import com.rhythmix.coreservice.exception.ArtistNotFoundException;
+import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.repository.ArtistRepository;
+import com.rhythmix.coreservice.repository.GenreRepository;
 import com.rhythmix.coreservice.service.ArtistService;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.utils.MergeUtils;
@@ -17,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Principal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -25,6 +30,7 @@ import java.util.UUID;
 public class ArtistServiceImpl implements ArtistService {
     private final ArtistRepository artistRepository;
     private final ImageUploadService imageUploadService;
+    private final GenreRepository genreRepository;
 
     @Override
     @Transactional
@@ -85,5 +91,41 @@ public class ArtistServiceImpl implements ArtistService {
         }
         artistRepository.deleteById(artistId);
         log.info("Deleting artist {}", artistId);
+    }
+
+    @Override
+    public Artist addGenres(AddGenreToEntityDto dto) {
+        Artist artist = artistRepository.findWithGenresById(dto.entityId()).orElseThrow(
+                () -> new ArtistNotFoundException("Artist not found with id '" + dto.entityId() + "'")
+        );
+
+        List<Genre> genresToAdd = genreRepository.findAllById(dto.genreIds());
+
+        artist.getGenres().addAll(genresToAdd);
+
+        for (Genre genre : genresToAdd) {
+            artist.addGenre(genre);
+        }
+
+        Artist updatedArtist = artistRepository.save(artist);
+        log.info("Updated artist with genres: {}", updatedArtist);
+        return updatedArtist;
+    }
+
+    @Override
+    @Transactional
+    public Artist removeGenre(UUID genreId, UUID artistId) {
+        Artist artist = artistRepository.findWithGenresById(artistId).orElseThrow(
+                () -> new ArtistNotFoundException("Artist not found with id '" + genreId + "'")
+        );
+
+        Genre genre = genreRepository.findById(genreId).orElseThrow(
+                () -> new GenreNotFoundException("Genre not found with id '" + genreId + "'")
+        );
+
+        artist.getGenres().remove(genre);
+        genre.getArtists().remove(artist);
+        log.info("Removed artist with genres: {}", artist);
+        return artist;
     }
 }

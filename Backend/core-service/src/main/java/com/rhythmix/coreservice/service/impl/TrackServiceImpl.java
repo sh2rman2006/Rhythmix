@@ -1,14 +1,18 @@
 package com.rhythmix.coreservice.service.impl;
 
+import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
 import com.rhythmix.coreservice.entity.Album;
 import com.rhythmix.coreservice.entity.Artist;
+import com.rhythmix.coreservice.entity.Genre;
 import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.exception.TrackAlreadyExistException;
 import com.rhythmix.coreservice.exception.TrackNotFoundException;
 import com.rhythmix.coreservice.repository.AlbumRepository;
 import com.rhythmix.coreservice.repository.ArtistRepository;
+import com.rhythmix.coreservice.repository.GenreRepository;
 import com.rhythmix.coreservice.repository.TrackRepository;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.MinioService;
@@ -24,6 +28,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.Principal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -33,6 +38,7 @@ public class TrackServiceImpl implements TrackService {
     private final TrackRepository trackRepository;
     private final AlbumRepository albumRepository;
     private final ArtistRepository artistRepository;
+    private final GenreRepository genreRepository;
     private final MinioService minioService;
     private final ImageUploadService imageUploadService;
 
@@ -122,5 +128,41 @@ public class TrackServiceImpl implements TrackService {
         }
         trackRepository.deleteById(trackId);
         log.info("Deleted track with id: {}", trackId);
+    }
+
+    @Override
+    @Transactional
+    public Track addGenreToTrack(AddGenreToEntityDto dto) {
+        Track track = trackRepository.findWithRelationsById(dto.entityId()).orElseThrow(
+                () -> new TrackNotFoundException("Track not found with id '" + dto.entityId() + "'")
+        );
+
+        List<Genre> genresToAdd = genreRepository.findAllById(dto.genreIds());
+
+        for (Genre genre : genresToAdd) {
+            track.addGenre(genre);
+        }
+
+        Track updatedTrack = trackRepository.save(track);
+        log.info("Updated track with genres: {}", updatedTrack);
+        return updatedTrack;
+    }
+
+    @Override
+    @Transactional
+    public Track removeGenreFromTrack(UUID trackGenreId, UUID trackId) {
+        Track track = trackRepository.findWithRelationsById(trackId).orElseThrow(
+                () -> new TrackNotFoundException("Track not found with id '" + trackId + "'")
+        );
+
+        Genre genreToRemove = genreRepository.findById(trackGenreId).orElseThrow(
+                () -> new GenreNotFoundException("Genre not found with id '" + trackGenreId + "'")
+        );
+
+        track.getGenres().remove(genreToRemove);
+        genreToRemove.getTracks().remove(track);
+
+        log.info("Removed genre from track: {}", track);
+        return track;
     }
 }

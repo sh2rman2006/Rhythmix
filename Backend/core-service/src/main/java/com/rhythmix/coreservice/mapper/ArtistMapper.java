@@ -2,6 +2,7 @@ package com.rhythmix.coreservice.mapper;
 
 import com.rhythmix.coreservice.dto.ArtistDto;
 import com.rhythmix.coreservice.entity.Artist;
+import com.rhythmix.coreservice.entity.Genre;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ArtistMapper implements EntitiesMapper<Artist, ArtistDto> {
+    private final GenreMapper genreMapper;
     private final CoverUrlResolver coverUrlResolver;
 
     @Override
@@ -24,6 +26,8 @@ public class ArtistMapper implements EntitiesMapper<Artist, ArtistDto> {
                 artist.getCountry(),
                 artist.getCity(),
                 profileImageUrl,
+                artist.getGenres() != null && !artist.getGenres().isEmpty()
+                        ? genreMapper.toDtoList(artist.getGenres()) : null,
                 artist.getCreatedBy(),
                 artist.getCreatedAt(),
                 artist.getUpdatedAt()
@@ -44,5 +48,24 @@ public class ArtistMapper implements EntitiesMapper<Artist, ArtistDto> {
                 .createdAt(artistDto.getCreatedAt())
                 .updatedAt(artistDto.getUpdatedAt())
                 .build();
+    }
+
+    public ArtistDto toDtoWithoutGenres(@NotNull Artist artist) {
+        if (artist == null) return null;
+        String profileImageUrl = coverUrlResolver.resolveCoverUrl(artist.getProfileImageUrl(), artist.getFileImageUrl());
+
+        return new ArtistDto(
+                artist.getId(),
+                artist.getStageName(),
+                artist.getRealName(),
+                artist.getBiography(),
+                artist.getCountry(),
+                artist.getCity(),
+                profileImageUrl,
+                null,
+                artist.getCreatedBy(),
+                artist.getCreatedAt(),
+                artist.getUpdatedAt()
+        );
     }
 }

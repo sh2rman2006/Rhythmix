@@ -1,10 +1,12 @@
 package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.ArtistDto;
+import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
 import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
 import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
 import com.rhythmix.coreservice.exception.ArtistNotFoundException;
+import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.exception.IllegalContentTypeException;
 import com.rhythmix.coreservice.mapper.ArtistMapper;
 import com.rhythmix.coreservice.service.ArtistService;
@@ -73,6 +75,36 @@ public class ArtistController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Unexpected error while deleting artist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Добавить жанры к артисту", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @PostMapping("/genres")
+    public ResponseEntity<ArtistDto> addGenres(@Valid @RequestBody AddGenreToEntityDto dto) {
+        try {
+            ArtistDto artistDto = artistMapper.toDto(artistService.addGenres(dto));
+            return ResponseEntity.ok(artistDto);
+        } catch (ArtistNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while adding genres to artist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Удалить жанр у артиста", description = "Доступно только для модераторов")
+    @PreAuthorize("hasRole('MODERATOR_RHYTHMIX')")
+    @DeleteMapping("/{artistId}/genres/{genreId}")
+    public ResponseEntity<ArtistDto> removeGenre(@PathVariable @NotNull UUID artistId, @PathVariable @NotNull UUID genreId) {
+        try {
+            ArtistDto artistDto = artistMapper.toDto(artistService.removeGenre(genreId, artistId));
+            return ResponseEntity.ok(artistDto);
+        } catch (ArtistNotFoundException | GenreNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while removing genre from artist", e);
             return ResponseEntity.internalServerError().build();
         }
     }

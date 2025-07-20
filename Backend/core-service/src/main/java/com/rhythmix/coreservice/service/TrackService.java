@@ -1,5 +1,6 @@
 package com.rhythmix.coreservice.service;
 
+import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
 import com.rhythmix.coreservice.entity.Track;
@@ -15,4 +16,8 @@ public interface TrackService {
     Track updateTrack(TrackUpdateDto trackUpdateDto);
 
     void deleteTrack(UUID trackId);
+
+    Track addGenreToTrack(AddGenreToEntityDto addGenreToEntityDto);
+
+    Track removeGenreFromTrack(UUID trackGenreId, UUID trackId);
 }

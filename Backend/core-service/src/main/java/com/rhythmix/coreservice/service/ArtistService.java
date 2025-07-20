@@ -1,5 +1,6 @@
 package com.rhythmix.coreservice.service;
 
+import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
 import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
 import com.rhythmix.coreservice.entity.Artist;
@@ -15,4 +16,8 @@ public interface ArtistService {
     Artist updateArtist(ArtistUpdateDto artistUpdateDto) throws IOException;
 
     void deleteArtist(UUID artistId);
+
+    Artist addGenres(AddGenreToEntityDto addGenreToEntityDto);
+
+    Artist removeGenre(UUID genreId, UUID artistId);
 }

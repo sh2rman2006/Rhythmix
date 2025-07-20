@@ -18,4 +18,7 @@ public interface TrackRepository extends JpaRepository<Track, UUID> {
 
     @EntityGraph(attributePaths = {"artist", "album"})
     Optional<Track> findWithArtistAndAlbumById(UUID id);
+
+    @EntityGraph(attributePaths = {"artist", "album", "genres"})
+    Optional<Track> findWithRelationsById(UUID id);
 }

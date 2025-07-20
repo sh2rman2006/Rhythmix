@@ -9,6 +9,7 @@ import lombok.experimental.Accessors;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -31,6 +32,7 @@ public class ArtistDto implements Serializable {
     @Size(max = 100)
     private String city;
     private String profileImageUrl;
+    private List<GenreDto> genres;
     @NotNull
     private UUID createdBy;
     @NotNull
