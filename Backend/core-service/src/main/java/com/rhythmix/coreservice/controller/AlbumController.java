@@ -36,7 +36,7 @@ public class AlbumController {
         try {
             AlbumDto albumDto = albumMapper.toDto(albumService.createAlbum(albumCreateDto));
             return ResponseEntity.ok(albumDto);
-        } catch (IllegalContentTypeException | AlbumAlreadyExistException e) {
+        } catch (IllegalContentTypeException | AlbumAlreadyExistException | ArtistNotFoundException e) {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("Unexpected error while creating album", e);

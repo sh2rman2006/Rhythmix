@@ -42,7 +42,6 @@ public class TrackServiceImpl implements TrackService {
     private final MinioService minioService;
     private final ImageUploadService imageUploadService;
 
-
     @Override
     @Transactional
     public Track createTrack(TrackCreateDto trackCreateDto, Principal principal) throws IOException {
@@ -50,8 +49,17 @@ public class TrackServiceImpl implements TrackService {
             throw new TrackAlreadyExistException("Track with title '" + trackCreateDto.getTitle() + "' already exists.");
         }
 
-        String coverUrl = imageUploadService.normalizeUrl(trackCreateDto.getCoverUrl());
-        String coverFile = imageUploadService.uploadImageFile(trackCreateDto.getCoverFile(), UUID.randomUUID().toString());
+        boolean hasCoverFile = trackCreateDto.getCoverFile() != null && !trackCreateDto.getCoverFile().isEmpty();
+        boolean hasCoverUrl = trackCreateDto.getCoverUrl() != null && !trackCreateDto.getCoverUrl().isBlank();
+
+        String coverUrl = null;
+        String fileUrl = null;
+
+        if (hasCoverFile) {
+            fileUrl = imageUploadService.uploadImageFile(trackCreateDto.getCoverFile(), UUID.randomUUID().toString());
+        } else if (hasCoverUrl) {
+            coverUrl = imageUploadService.normalizeUrl(trackCreateDto.getCoverUrl());
+        }
 
         if (trackCreateDto.getAudioFile() == null) throw new IllegalArgumentException("No audio file provided.");
 
@@ -77,7 +85,7 @@ public class TrackServiceImpl implements TrackService {
                 .description(trackCreateDto.getDescription())
                 .audioFile(audioFile)
                 .coverUrl(coverUrl)
-                .coverFile(coverFile)
+                .coverFile(fileUrl)
                 .duration(duration)
                 .explicit(trackCreateDto.getExplicit())
                 .releaseDate(trackCreateDto.getReleaseDate())
@@ -97,19 +105,35 @@ public class TrackServiceImpl implements TrackService {
     @Transactional
     public Track updateTrack(TrackUpdateDto trackUpdateDto) {
         Track track = trackRepository.findWithArtistAndAlbumById(trackUpdateDto.getId())
-                .orElseThrow(() -> new TrackNotFoundException("Track not found with id: " + trackUpdateDto.getId() + "not found"));
-
-        String coverFile = imageUploadService.uploadImageFile(trackUpdateDto.getCoverFile(), UUID.randomUUID().toString());
+                .orElseThrow(() -> new TrackNotFoundException("Track with id: '" + trackUpdateDto.getId() + "' not found"));
 
         Album album = albumRepository.findWithArtistById(trackUpdateDto.getAlbumId()).orElse(null);
         if (album != null && album.getArtist().getId().equals(track.getArtist().getId())) {
             track.setAlbum(album);
         }
 
+        boolean hasNewCoverFile = trackUpdateDto.getCoverFile() != null && !trackUpdateDto.getCoverFile().isEmpty();
+        boolean hasNewCoverUrl = trackUpdateDto.getCoverUrl() != null && !trackUpdateDto.getCoverUrl().isBlank();
+
+        if (hasNewCoverFile) {
+            if (track.getCoverFile() != null) {
+                minioService.delete(track.getCoverFile());
+            }
+
+            String fileUrl = imageUploadService.uploadImageFile(trackUpdateDto.getCoverFile(), UUID.randomUUID().toString());
+            track.setCoverFile(fileUrl);
+            track.setCoverUrl(null);
+        } else if (hasNewCoverUrl) {
+            if (track.getCoverFile() != null) {
+                minioService.delete(track.getCoverFile());
+            }
+
+            track.setCoverUrl(trackUpdateDto.getCoverUrl());
+            track.setCoverFile(null);
+        }
+
         track.setTitle(MergeUtils.preferNewIfPresent(track.getTitle(), trackUpdateDto.getTitle()));
         track.setDescription(MergeUtils.preferNewIfPresent(track.getDescription(), trackUpdateDto.getDescription()));
-        track.setCoverUrl(MergeUtils.preferNewIfPresent(track.getCoverUrl(), trackUpdateDto.getCoverUrl()));
-        track.setCoverFile(MergeUtils.preferNewIfPresent(track.getCoverFile(), coverFile));
         track.setExplicit(MergeUtils.preferNewIfPresent(track.getExplicit(), trackUpdateDto.getExplicit()));
         track.setReleaseDate(MergeUtils.preferNewIfPresent(track.getReleaseDate(), trackUpdateDto.getReleaseDate()));
 
@@ -123,11 +147,12 @@ public class TrackServiceImpl implements TrackService {
     @Override
     @Transactional
     public void deleteTrack(UUID trackId) {
-        if (!trackRepository.existsById(trackId)) {
-            throw new TrackNotFoundException("Track not found with id: " + trackId);
-        }
-        trackRepository.deleteById(trackId);
-        log.info("Deleted track with id: {}", trackId);
+        Track track = trackRepository.findById(trackId).orElseThrow(
+                () -> new TrackNotFoundException("Track not found with id: " + trackId)
+        );
+        minioService.delete(track.getCoverFile());
+        trackRepository.delete(track);
+        log.info("Deleted track : {}", trackId);
     }
 
     @Override

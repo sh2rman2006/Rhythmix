@@ -12,6 +12,7 @@ import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.repository.GenreRepository;
 import com.rhythmix.coreservice.service.ArtistService;
 import com.rhythmix.coreservice.service.ImageUploadService;
+import com.rhythmix.coreservice.service.MinioService;
 import com.rhythmix.coreservice.utils.MergeUtils;
 import com.rhythmix.coreservice.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class ArtistServiceImpl implements ArtistService {
     private final ArtistRepository artistRepository;
     private final ImageUploadService imageUploadService;
     private final GenreRepository genreRepository;
+    private final MinioService minioService;
 
     @Override
     @Transactional
@@ -40,8 +42,19 @@ public class ArtistServiceImpl implements ArtistService {
             throw new ArtistAlreadyExistException("Stage name already exists");
         }
 
-        String profileUrl = imageUploadService.normalizeUrl(artistCreateDto.getProfileImageUrl());
-        String fileUrl = imageUploadService.uploadImageFile(artistCreateDto.getAvatarFile(), UUID.randomUUID().toString());
+        boolean hasCoverFile = artistCreateDto.getAvatarFile() != null && !artistCreateDto.getAvatarFile().isEmpty();
+        boolean hasCoverUrl = artistCreateDto.getProfileImageUrl() != null && !artistCreateDto.getProfileImageUrl().isBlank();
+
+        String profileUrl = null;
+        String fileUrl = null;
+
+        if (hasCoverFile) {
+            fileUrl = imageUploadService.uploadImageFile(artistCreateDto.getAvatarFile(), UUID.randomUUID().toString());
+        } else if (hasCoverUrl) {
+            profileUrl = imageUploadService.normalizeUrl(artistCreateDto.getProfileImageUrl());
+        }
+
+
         UUID ownerId = SecurityUtils.extractUserId(principal);
         Instant now = Instant.now();
 
@@ -68,16 +81,33 @@ public class ArtistServiceImpl implements ArtistService {
     public Artist updateArtist(ArtistUpdateDto artistUpdateDto) {
         Artist artist = artistRepository.findById(artistUpdateDto.getId()).orElseThrow(() -> new ArtistNotFoundException("Artist not with id '" + artistUpdateDto.getId() + "'not found"));
 
-        String fileUrl = imageUploadService.uploadImageFile(artistUpdateDto.getAvatarFile(), UUID.randomUUID().toString());
-
-        artist.setFileImageUrl(MergeUtils.preferNewIfPresent(artist.getFileImageUrl(), fileUrl));
         artist.setStageName(MergeUtils.preferNewIfPresent(artist.getStageName(), artistUpdateDto.getStageName()));
         artist.setRealName(MergeUtils.preferNewIfPresent(artist.getRealName(), artistUpdateDto.getRealName()));
         artist.setBiography(MergeUtils.preferNewIfPresent(artist.getBiography(), artistUpdateDto.getBiography()));
         artist.setCountry(MergeUtils.preferNewIfPresent(artist.getCountry(), artistUpdateDto.getCountry()));
         artist.setCity(MergeUtils.preferNewIfPresent(artist.getCity(), artistUpdateDto.getCity()));
+
+        boolean hasNewCoverFile = artistUpdateDto.getAvatarFile() != null && !artistUpdateDto.getAvatarFile().isEmpty();
+        boolean hasNewCoverUrl = artistUpdateDto.getProfileImageUrl() != null && !artistUpdateDto.getProfileImageUrl().isBlank();
+
+        if (hasNewCoverFile) {
+            if (artist.getFileImageUrl() != null) {
+                minioService.delete(artist.getFileImageUrl());
+            }
+
+            String fileUrl = imageUploadService.uploadImageFile(artistUpdateDto.getAvatarFile(), UUID.randomUUID().toString());
+            artist.setFileImageUrl(fileUrl);
+            artist.setProfileImageUrl(null);
+        } else if (hasNewCoverUrl) {
+            if (artist.getFileImageUrl() != null) {
+                minioService.delete(artist.getFileImageUrl());
+            }
+
+            artist.setProfileImageUrl(artistUpdateDto.getProfileImageUrl());
+            artist.setFileImageUrl(null);
+        }
+
         artist.setUpdatedAt(Instant.now());
-        artist.setProfileImageUrl(MergeUtils.preferNewIfPresent(artist.getProfileImageUrl(), artistUpdateDto.getProfileImageUrl()));
 
         log.info("Updated artist: {}", artist);
         return artistRepository.save(artist);
@@ -86,11 +116,12 @@ public class ArtistServiceImpl implements ArtistService {
     @Override
     @Transactional
     public void deleteArtist(UUID artistId) {
-        if (!artistRepository.existsById(artistId)) {
-            throw new ArtistNotFoundException("Artist not with id '" + artistId + "' not found");
-        }
-        artistRepository.deleteById(artistId);
-        log.info("Deleting artist {}", artistId);
+        Artist artist = artistRepository.findById(artistId).orElseThrow(
+                () -> new ArtistNotFoundException("Artist not with id '" + artistId + "' not found")
+        );
+        minioService.delete(artist.getFileImageUrl());
+        artistRepository.delete(artist);
+        log.info("Deleting artist {}", artist);
     }
 
     @Override

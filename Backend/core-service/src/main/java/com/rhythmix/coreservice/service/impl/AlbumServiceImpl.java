@@ -11,6 +11,7 @@ import com.rhythmix.coreservice.repository.ArtistRepository;
 import com.rhythmix.coreservice.repository.TrackRepository;
 import com.rhythmix.coreservice.service.AlbumService;
 import com.rhythmix.coreservice.service.ImageUploadService;
+import com.rhythmix.coreservice.service.MinioService;
 import com.rhythmix.coreservice.utils.MergeUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,7 @@ public class AlbumServiceImpl implements AlbumService {
     private final ArtistRepository artistRepository;
     private final ImageUploadService imageUploadService;
     private final TrackRepository trackRepository;
+    private final MinioService minioService;
 
     @Override
     @Transactional
@@ -36,13 +38,22 @@ public class AlbumServiceImpl implements AlbumService {
             throw new AlbumAlreadyExistException("Album with title '" + albumCreateDto.getTitle() + "' already exists.");
         }
 
-        String coverUrl = imageUploadService.normalizeUrl(albumCreateDto.getCoverUrl());
 
-        String fileUrl = imageUploadService.uploadImageFile(albumCreateDto.getCoverFile(), UUID.randomUUID().toString());
+        boolean hasCoverFile = albumCreateDto.getCoverFile() != null && !albumCreateDto.getCoverFile().isEmpty();
+        boolean hasCoverUrl = albumCreateDto.getCoverUrl() != null && !albumCreateDto.getCoverUrl().isBlank();
 
-        Artist artist;
-        if (albumCreateDto.getArtistId() == null) artist = null;
-        else artist = artistRepository.findById(albumCreateDto.getArtistId()).orElse(null);
+        String coverUrl = null;
+        String fileUrl = null;
+
+        if (hasCoverFile) {
+            fileUrl = imageUploadService.uploadImageFile(albumCreateDto.getCoverFile(), UUID.randomUUID().toString());
+        } else if (hasCoverUrl) {
+            coverUrl = imageUploadService.normalizeUrl(albumCreateDto.getCoverUrl());
+        }
+
+        Artist artist = artistRepository.findById(albumCreateDto.getArtistId()).orElseThrow(
+                () -> new ArtistNotFoundException("Artist with id '" + albumCreateDto.getArtistId() + "' not found.")
+        );
 
         Instant now = Instant.now();
 
@@ -65,16 +76,33 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     @Transactional
     public Album updateAlbum(AlbumUpdateDto albumUpdateDto) {
-        Album album = albumRepository.findWithArtistById(albumUpdateDto.getId()).orElseThrow(() -> new AlbumNotFoundException("Album with id '" + albumUpdateDto.getId() + "' not found."));
-
-        String fileUrl = imageUploadService.uploadImageFile(albumUpdateDto.getCoverFile(), UUID.randomUUID().toString());
+        Album album = albumRepository.findWithArtistById(albumUpdateDto.getId()).orElseThrow(
+                () -> new AlbumNotFoundException("Album with id '" + albumUpdateDto.getId() + "' not found."));
 
         album.setTitle(MergeUtils.preferNewIfPresent(album.getTitle(), albumUpdateDto.getTitle()));
         album.setDescription(MergeUtils.preferNewIfPresent(album.getDescription(), albumUpdateDto.getDescription()));
         album.setReleaseDate(MergeUtils.preferNewIfPresent(album.getReleaseDate(), albumUpdateDto.getReleaseDate()));
         album.setUpdatedAt(Instant.now());
-        album.setCoverUrl(MergeUtils.preferNewIfPresent(album.getCoverUrl(), albumUpdateDto.getCoverUrl()));
-        album.setCoverFile(MergeUtils.preferNewIfPresent(album.getCoverFile(), fileUrl));
+
+        boolean hasNewCoverFile = albumUpdateDto.getCoverFile() != null && !albumUpdateDto.getCoverFile().isEmpty();
+        boolean hasNewCoverUrl = albumUpdateDto.getCoverUrl() != null && !albumUpdateDto.getCoverUrl().isBlank();
+
+        if (hasNewCoverFile) {
+            if (album.getCoverFile() != null) {
+                minioService.delete(album.getCoverFile());
+            }
+
+            String fileUrl = imageUploadService.uploadImageFile(albumUpdateDto.getCoverFile(), UUID.randomUUID().toString());
+            album.setCoverFile(fileUrl);
+            album.setCoverUrl(null);
+        } else if (hasNewCoverUrl) {
+            if (album.getCoverFile() != null) {
+                minioService.delete(album.getCoverFile());
+            }
+
+            album.setCoverUrl(albumUpdateDto.getCoverUrl());
+            album.setCoverFile(null);
+        }
 
         Album albumSaved = albumRepository.save(album);
         log.info("Updated album: {}", albumSaved);
@@ -84,11 +112,12 @@ public class AlbumServiceImpl implements AlbumService {
     @Override
     @Transactional
     public void deleteAlbum(UUID albumId) {
-        if (!albumRepository.existsById(albumId)) {
-            throw new AlbumNotFoundException("Album with id '" + albumId + "' not found.");
-        }
-        albumRepository.deleteById(albumId);
-        log.info("Deleted album: {}", albumId);
+        Album album = albumRepository.findById(albumId).orElseThrow(
+                () -> new AlbumNotFoundException("Album with id '" + albumId + "' not found.")
+        );
+        minioService.delete(album.getCoverFile());
+        albumRepository.delete(album);
+        log.info("Deleted album: {}", album);
     }
 
     @Override
