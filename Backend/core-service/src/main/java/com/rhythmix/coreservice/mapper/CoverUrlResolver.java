@@ -15,4 +15,14 @@ public class CoverUrlResolver {
         }
         return coverUrl;
     }
+
+    public String resolve(String value) {
+        if (value == null || value.isBlank()) return null;
+
+        if (value.startsWith("http://") || value.startsWith("https://")) {
+            return value;
+        }
+
+        return minioService.generatePresignedUrl(value, 60 * 60 * 24 * 7); // 7 дней
+    }
 }

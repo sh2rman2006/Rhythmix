@@ -4,13 +4,16 @@ import com.rhythmix.coreservice.dto.KeycloakUserEvent;
 import com.rhythmix.coreservice.dto.RhythmixUserDto;
 import com.rhythmix.coreservice.entity.RhythmixUser;
 import jakarta.validation.constraints.NotNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Component
+@RequiredArgsConstructor
 public class RhythmixUserMapper implements EntitiesMapper<RhythmixUser, RhythmixUserDto> {
+    private final CoverUrlResolver coverUrlResolver;
 
     @Override
     public RhythmixUserDto toDto(RhythmixUser rhythmixUser) {
@@ -21,7 +24,9 @@ public class RhythmixUserMapper implements EntitiesMapper<RhythmixUser, Rhythmix
                 rhythmixUser.getFirstName(),
                 rhythmixUser.getLastName(),
                 rhythmixUser.getCreatedAt(),
-                rhythmixUser.getUpdatedAt()
+                rhythmixUser.getUpdatedAt(),
+                coverUrlResolver.resolve(rhythmixUser.getAvatarSeed()),
+                coverUrlResolver.resolve(rhythmixUser.getBackgroundUrl())
         );
     }
 
