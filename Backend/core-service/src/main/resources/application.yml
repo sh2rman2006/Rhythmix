@@ -21,6 +21,11 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  # redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   # kafka
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9094}

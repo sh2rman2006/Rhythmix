@@ -1,6 +1,7 @@
 package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.AlbumDto;
+import com.rhythmix.coreservice.dto.create.AddEntityLikeDto;
 import com.rhythmix.coreservice.dto.create.AddTrackToAlbumDto;
 import com.rhythmix.coreservice.dto.create.AlbumCreateDto;
 import com.rhythmix.coreservice.dto.update.AlbumUpdateDto;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.UUID;
 
 @Slf4j
@@ -104,6 +106,34 @@ public class AlbumController {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("Unexpected error while removing track from album", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Лайкнуть альбом", description = "Доступно всем авторизованным пользователям")
+    @PostMapping("/like")
+    public ResponseEntity<Void> likeAlbum(@Valid @RequestBody AddEntityLikeDto addEntityLikeDto, Principal principal) {
+        try {
+            albumService.likeAlbum(addEntityLikeDto.entityId(), principal);
+            return ResponseEntity.ok().build();
+        } catch (AlbumNotFoundException | IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while liking album", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Убрать лайк", description = "Доступно всем авторизованным пользователям")
+    @DeleteMapping("/{albumId}/unlike")
+    public ResponseEntity<Void> unlikeAlbum(@PathVariable @NotNull UUID albumId, Principal principal) {
+        try {
+            albumService.unlikeAlbum(albumId, principal);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while unliking album", e);
             return ResponseEntity.internalServerError().build();
         }
     }

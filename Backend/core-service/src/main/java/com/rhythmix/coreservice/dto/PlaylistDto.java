@@ -1,5 +1,6 @@
 package com.rhythmix.coreservice.dto;
 
+import com.rhythmix.coreservice.enums.SystemPlaylistType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -31,6 +32,7 @@ public class PlaylistDto implements Serializable {
     private Boolean isPublic = false;
     @NotNull
     private Boolean isSystem = false;
+    private SystemPlaylistType systemPlaylistType;
     @NotNull
     private Instant createdAt;
     @NotNull

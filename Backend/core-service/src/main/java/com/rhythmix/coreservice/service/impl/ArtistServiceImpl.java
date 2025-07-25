@@ -4,11 +4,15 @@ import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
 import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
 import com.rhythmix.coreservice.entity.Artist;
+import com.rhythmix.coreservice.entity.EntityLike;
 import com.rhythmix.coreservice.entity.Genre;
+import com.rhythmix.coreservice.entity.RhythmixUser;
+import com.rhythmix.coreservice.enums.LikedEntityType;
 import com.rhythmix.coreservice.exception.ArtistAlreadyExistException;
 import com.rhythmix.coreservice.exception.ArtistNotFoundException;
 import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.repository.ArtistRepository;
+import com.rhythmix.coreservice.repository.EntityLikeRepository;
 import com.rhythmix.coreservice.repository.GenreRepository;
 import com.rhythmix.coreservice.service.ArtistService;
 import com.rhythmix.coreservice.service.ImageUploadService;
@@ -33,6 +37,7 @@ public class ArtistServiceImpl implements ArtistService {
     private final ImageUploadService imageUploadService;
     private final GenreRepository genreRepository;
     private final MinioService minioService;
+    private final EntityLikeRepository entityLikeRepository;
 
     @Override
     @Transactional
@@ -158,5 +163,54 @@ public class ArtistServiceImpl implements ArtistService {
         genre.getArtists().remove(artist);
         log.info("Removed artist with genres: {}", artist);
         return artist;
+    }
+
+    @Override
+    public void likeArtist(UUID artistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = RhythmixUser.builder().id(userId).build();
+
+        if (!artistRepository.existsById(artistId)) {
+            throw new ArtistNotFoundException("Artist not found with id: " + artistId);
+        }
+
+        boolean alreadyLiked = entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.ARTIST, artistId, user);
+
+        if (alreadyLiked) {
+            throw new IllegalStateException("Artist already liked.");
+        }
+
+        EntityLike like = new EntityLike();
+        like.setEntityType(LikedEntityType.ARTIST);
+        like.setEntityId(artistId);
+        like.setUser(user);
+        like.setCreatedAt(Instant.now());
+
+        entityLikeRepository.save(like);
+        log.info("User {} liked artist {}", userId, artistId);
+    }
+
+    @Override
+    @Transactional
+    public void unlikeArtist(UUID artistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = RhythmixUser.builder().id(userId).build();
+
+        EntityLike like = entityLikeRepository.findByEntityTypeAndEntityIdAndUser(
+                        LikedEntityType.ARTIST, artistId, user)
+                .orElseThrow(() -> new IllegalStateException("Artist not liked."));
+
+        entityLikeRepository.delete(like);
+        log.info("User {} unliked artist {}", userId, artistId);
+    }
+
+    @Override
+    public boolean isLiked(UUID artistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = RhythmixUser.builder().id(userId).build();
+
+        return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.ARTIST, artistId, user);
     }
 }

@@ -2,22 +2,24 @@ package com.rhythmix.coreservice.service.impl;
 
 import com.rhythmix.coreservice.dto.create.AlbumCreateDto;
 import com.rhythmix.coreservice.dto.update.AlbumUpdateDto;
-import com.rhythmix.coreservice.entity.Album;
-import com.rhythmix.coreservice.entity.Artist;
-import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.entity.*;
+import com.rhythmix.coreservice.enums.LikedEntityType;
 import com.rhythmix.coreservice.exception.*;
 import com.rhythmix.coreservice.repository.AlbumRepository;
 import com.rhythmix.coreservice.repository.ArtistRepository;
+import com.rhythmix.coreservice.repository.EntityLikeRepository;
 import com.rhythmix.coreservice.repository.TrackRepository;
 import com.rhythmix.coreservice.service.AlbumService;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.MinioService;
 import com.rhythmix.coreservice.utils.MergeUtils;
+import com.rhythmix.coreservice.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.Principal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -30,6 +32,7 @@ public class AlbumServiceImpl implements AlbumService {
     private final ImageUploadService imageUploadService;
     private final TrackRepository trackRepository;
     private final MinioService minioService;
+    private final EntityLikeRepository entityLikeRepository;
 
     @Override
     @Transactional
@@ -168,5 +171,55 @@ public class AlbumServiceImpl implements AlbumService {
         album.getTracks().remove(track);
         track.setAlbum(null);
         log.info("Removed track {} from album {}", trackId, albumId);
+    }
+
+    @Override
+    @Transactional
+    public void likeAlbum(UUID albumId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = RhythmixUser.builder().id(userId).build();
+
+        if (!albumRepository.existsById(albumId)) {
+            throw new AlbumNotFoundException("Album with id '" + albumId + "' not found.");
+        }
+
+        boolean alreadyLiked = entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.ALBUM, albumId, user);
+
+        if (alreadyLiked) {
+            throw new IllegalStateException("Album already liked.");
+        }
+
+        EntityLike like = new EntityLike();
+        like.setEntityType(LikedEntityType.ALBUM);
+        like.setEntityId(albumId);
+        like.setUser(user);
+        like.setCreatedAt(Instant.now());
+
+        entityLikeRepository.save(like);
+        log.info("User {} liked album {}", userId, albumId);
+    }
+
+    @Override
+    @Transactional
+    public void unlikeAlbum(UUID albumId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = RhythmixUser.builder().id(userId).build();
+
+        EntityLike like = entityLikeRepository.findByEntityTypeAndEntityIdAndUser(
+                        LikedEntityType.ALBUM, albumId, user)
+                .orElseThrow(() -> new IllegalStateException("Album not liked."));
+
+        entityLikeRepository.delete(like);
+        log.info("User {} unliked album {}", userId, albumId);
+    }
+
+    @Override
+    public boolean isLiked(UUID albumId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = RhythmixUser.builder().id(userId).build();
+
+        return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.ALBUM, albumId, user);
     }
 }

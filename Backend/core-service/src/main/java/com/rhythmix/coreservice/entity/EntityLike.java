@@ -1,10 +1,10 @@
 package com.rhythmix.coreservice.entity;
 
+import com.rhythmix.coreservice.enums.LikedEntityType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -14,6 +14,9 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "entity_likes", schema = "public", indexes = {
         @Index(name = "idx_entity_likes_entity", columnList = "entity_type, entity_id")
@@ -28,8 +31,9 @@ public class EntityLike {
 
     @Size(max = 50)
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "entity_type", nullable = false, length = 50)
-    private String entityType;
+    private LikedEntityType entityType;
 
     @NotNull
     @Column(name = "entity_id", nullable = false)

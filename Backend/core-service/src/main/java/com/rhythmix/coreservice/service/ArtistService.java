@@ -20,4 +20,10 @@ public interface ArtistService {
     Artist addGenres(AddGenreToEntityDto addGenreToEntityDto);
 
     Artist removeGenre(UUID genreId, UUID artistId);
+
+    void likeArtist(UUID artistId, Principal principal);
+
+    void unlikeArtist(UUID artistId, Principal principal);
+
+    boolean isLiked(UUID artistId, Principal principal);
 }

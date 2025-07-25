@@ -1,6 +1,7 @@
 package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.ArtistDto;
+import com.rhythmix.coreservice.dto.create.AddEntityLikeDto;
 import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.ArtistCreateDto;
 import com.rhythmix.coreservice.dto.update.ArtistUpdateDto;
@@ -105,6 +106,34 @@ public class ArtistController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Unexpected error while removing genre from artist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Лайкнуть артиста", description = "Доступно для всех пользователей")
+    @PostMapping("/like")
+    public ResponseEntity<Void> likeArtist(@Valid @RequestBody AddEntityLikeDto likeDto, Principal principal) {
+        try {
+            artistService.likeArtist(likeDto.entityId(), principal);
+            return ResponseEntity.ok().build();
+        } catch (ArtistNotFoundException | IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while liking artist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Убрать лайк у артиста", description = "Доступно для всех пользователей")
+    @DeleteMapping("/{artistId}/unlike")
+    public ResponseEntity<Void> unlikeArtist(@PathVariable @NotNull UUID artistId, Principal principal) {
+        try {
+            artistService.unlikeArtist(artistId, principal);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while unliking artist", e);
             return ResponseEntity.internalServerError().build();
         }
     }

@@ -1,7 +1,7 @@
 package com.rhythmix.coreservice.service.impl;
 
-import com.rhythmix.coreservice.contentTypes.AllowedAudioType;
-import com.rhythmix.coreservice.contentTypes.AllowedImageType;
+import com.rhythmix.coreservice.enums.AllowedAudioType;
+import com.rhythmix.coreservice.enums.AllowedImageType;
 import com.rhythmix.coreservice.service.MinioService;
 import io.minio.*;
 import io.minio.http.Method;

@@ -1,5 +1,6 @@
 package com.rhythmix.coreservice.entity;
 
+import com.rhythmix.coreservice.enums.SystemPlaylistType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -54,6 +55,10 @@ public class Playlist {
     @Column(name = "is_system", nullable = false)
     private Boolean isSystem = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "system_type")
+    private SystemPlaylistType systemType;
+
     @NotNull
     @ColumnDefault("now()")
     @Column(name = "created_at", nullable = false)
@@ -69,17 +74,17 @@ public class Playlist {
 
     @Override
     public String toString() {
-        return "Playlist{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", coverUrl='" + coverUrl + '\'' +
-                ", coverFile='" + coverFile + '\'' +
-                ", ownerId=" + ownerId +
-                ", isPublic=" + isPublic +
-                ", isSystem=" + isSystem +
-                ", createdAt=" + createdAt +
-                ", updatedAt=" + updatedAt +
-                '}';
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "name = " + name + ", " +
+                "description = " + description + ", " +
+                "coverUrl = " + coverUrl + ", " +
+                "coverFile = " + coverFile + ", " +
+                "ownerId = " + ownerId + ", " +
+                "isPublic = " + isPublic + ", " +
+                "isSystem = " + isSystem + ", " +
+                "systemType = " + systemType + ", " +
+                "createdAt = " + createdAt + ", " +
+                "updatedAt = " + updatedAt + ")";
     }
 }
