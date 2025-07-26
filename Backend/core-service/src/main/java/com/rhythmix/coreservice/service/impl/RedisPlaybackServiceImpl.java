@@ -7,15 +7,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class RedisPlaybackServiceImpl implements RedisPlaybackService {
 
-    private static final int MAX_HISTORY_SIZE = 100;
+    private static final int MAX_HISTORY_SIZE = 50;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -51,6 +50,30 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
                 : Collections.emptyList();
     }
 
+    @Override
+    public Set<UUID> getAllTrackIdsWithPlayCounts() {
+        Set<String> keys = redisTemplate.keys(trackPlaysKeyPrefix() + "*");
+        if (keys == null) return Collections.emptySet();
+
+        return keys.stream()
+                .map(k -> k.replace(trackPlaysKeyPrefix(), ""))
+                .map(this::safeParseUUID)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void clearTrackPlays(UUID trackId) {
+        redisTemplate.delete(trackPlaysKey(trackId));
+    }
+
+    private UUID safeParseUUID(String str) {
+        try {
+            return UUID.fromString(str);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 
     private static String trackPlaysKey(UUID trackId) {
         return "track:plays:" + trackId;
@@ -58,5 +81,9 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
 
     private static String userHistoryKey(UUID userId) {
         return "user:history:" + userId;
+    }
+
+    private static String trackPlaysKeyPrefix() {
+        return "track:plays:";
     }
 }

@@ -53,6 +53,10 @@ public class Track {
     @Column(name = "duration")
     private Integer duration;
 
+    @Column(name = "total_listens", nullable = false)
+    @ColumnDefault("0")
+    private long totalListens;
+
     @NotNull
     @ColumnDefault("false")
     @Column(name = "explicit", nullable = false)
@@ -100,19 +104,19 @@ public class Track {
 
     @Override
     public String toString() {
-        return "Track{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", audioFile='" + audioFile + '\'' +
-                ", coverUrl='" + coverUrl + '\'' +
-                ", coverFile='" + coverFile + '\'' +
-                ", duration=" + duration +
-                ", explicit=" + explicit +
-                ", releaseDate=" + releaseDate +
-                ", uploadedAt=" + uploadedAt +
-                ", uploadedBy=" + uploadedBy +
-                '}';
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ", " +
+                "title = " + title + ", " +
+                "description = " + description + ", " +
+                "audioFile = " + audioFile + ", " +
+                "coverUrl = " + coverUrl + ", " +
+                "coverFile = " + coverFile + ", " +
+                "duration = " + duration + ", " +
+                "totalListens = " + totalListens + ", " +
+                "explicit = " + explicit + ", " +
+                "releaseDate = " + releaseDate + ", " +
+                "uploadedAt = " + uploadedAt + ", " +
+                "uploadedBy = " + uploadedBy + ")";
     }
 
     @Override

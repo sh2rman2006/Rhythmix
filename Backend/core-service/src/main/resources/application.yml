@@ -48,6 +48,10 @@ minio:
   access-key: ${MINIO_ROOT_USER:minio_user}
   secret-key: ${MINIO_ROOT_PASSWORD:minio_password}
   bucket: rhythmix
+# sync redis with pgsql
+playback:
+  sync:
+    interval-ms: 300000
 
 server:
   port: 8081

@@ -1,0 +1,2 @@
+ALTER TABLE tracks
+    ADD COLUMN total_listens BIGINT NOT NULL DEFAULT 0;

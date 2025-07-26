@@ -28,4 +28,11 @@ public interface PlaylistService {
     void unlikeTrack(UUID trackId, Principal principal);
 
     boolean isLiked(UUID trackId, Principal principal);
+
+    void likePlaylist(UUID playlistId, Principal principal);
+
+    void unlikePlaylist(UUID playlistId, Principal principal);
+
+    boolean isPlaylistLiked(UUID playlistId, Principal principal);
+
 }

@@ -3,6 +3,7 @@ package com.rhythmix.coreservice.service;
 import com.rhythmix.coreservice.dto.UserPlaybackEntry;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface RedisPlaybackService {
@@ -13,4 +14,9 @@ public interface RedisPlaybackService {
     void addUserPlaybackHistory(UUID userId, UUID trackId);
 
     List<UserPlaybackEntry> getUserPlaybackHistory(UUID userId);
+
+    Set<UUID> getAllTrackIdsWithPlayCounts();
+
+    void clearTrackPlays(UUID trackId);
+
 }

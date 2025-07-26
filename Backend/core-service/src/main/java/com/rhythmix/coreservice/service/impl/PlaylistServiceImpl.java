@@ -223,6 +223,58 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
+    public void likePlaylist(UUID playlistId, Principal principal) {
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(
+                () -> new PlaylistNotFoundException("Playlist not found with id: " + playlistId)
+        );
+
+        if (!playlist.getIsPublic()) {
+            throw new PlaylistAccessDeniedException("Cannot like a private playlist with id: " + playlistId);
+        }
+
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser userRef = RhythmixUser.builder().id(userId).build();
+
+        if (entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.PLAYLIST, playlistId, userRef)) {
+            throw new IllegalArgumentException("Playlist with id: " + playlistId + " is already liked by user with id: " + userId);
+        }
+
+        entityLikeRepository.save(
+                EntityLike.builder()
+                        .entityType(LikedEntityType.PLAYLIST)
+                        .entityId(playlistId)
+                        .user(userRef)
+                        .createdAt(Instant.now())
+                        .build()
+        );
+
+        log.info("Liked playlist: {} by user: {}", playlistId, userId);
+    }
+
+    @Override
+    public void unlikePlaylist(UUID playlistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser userRef = RhythmixUser.builder().id(userId).build();
+
+        entityLikeRepository.findByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.PLAYLIST, playlistId, userRef
+        ).ifPresent(entityLikeRepository::delete);
+
+        log.info("Unliked playlist with id: {} by user: {}", playlistId, userId);
+    }
+
+    @Override
+    public boolean isPlaylistLiked(UUID playlistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser userRef = RhythmixUser.builder().id(userId).build();
+
+        return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.PLAYLIST, playlistId, userRef
+        );
+    }
+
+    @Override
     public Playlist createLikedPlaylistForUser(UUID userId) {
         Instant now = Instant.now();
         return playlistRepository.save(
