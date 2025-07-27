@@ -52,6 +52,12 @@ minio:
 playback:
   sync:
     interval-ms: 300000
+# vectors
+rhythmix:
+  vectorizer:
+    dimension: 32
+    decay-factor: 0.65
+    vector-ttl: 6h
 
 server:
   port: 8081

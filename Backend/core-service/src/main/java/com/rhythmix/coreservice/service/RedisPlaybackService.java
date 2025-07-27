@@ -2,6 +2,7 @@ package com.rhythmix.coreservice.service;
 
 import com.rhythmix.coreservice.dto.UserPlaybackEntry;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -18,5 +19,13 @@ public interface RedisPlaybackService {
     Set<UUID> getAllTrackIdsWithPlayCounts();
 
     void clearTrackPlays(UUID trackId);
+
+    // Вектора жанров
+    void putGenreVector(UUID genreId, float[] vector, Duration ttl);
+    float[] getGenreVector(UUID genreId);
+
+    // Вектора треков
+    void putTrackVector(UUID trackId, float[] vector, Duration ttl);
+    float[] getTrackVector(UUID trackId);
 
 }

@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,6 +19,7 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
     private static final int MAX_HISTORY_SIZE = 50;
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, byte[]> redisByteArrayTemplate;
 
     @Override
     public void incrementTrackPlays(UUID trackId) {
@@ -67,12 +70,63 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
         redisTemplate.delete(trackPlaysKey(trackId));
     }
 
+
+    @Override
+    public void putGenreVector(UUID genreId, float[] vector, Duration ttl) {
+        if (vector == null || vector.length == 0) return;
+        String key = genreVectorKey(genreId);
+        byte[] bytes = floatArrayToByteArray(vector);
+        redisByteArrayTemplate.opsForValue().set(key, bytes, ttl);
+    }
+
+    @Override
+    public float[] getGenreVector(UUID genreId) {
+        String key = genreVectorKey(genreId);
+        byte[] bytes = redisByteArrayTemplate.opsForValue().get(key);
+        return byteArrayToFloatArray(bytes);
+    }
+
+
+    @Override
+    public void putTrackVector(UUID trackId, float[] vector, Duration ttl) {
+        if (vector == null || vector.length == 0) return;
+        String key = trackVectorKey(trackId);
+        byte[] bytes = floatArrayToByteArray(vector);
+        redisByteArrayTemplate.opsForValue().set(key, bytes, ttl);
+    }
+
+    @Override
+    public float[] getTrackVector(UUID trackId) {
+        String key = trackVectorKey(trackId);
+        byte[] bytes = redisByteArrayTemplate.opsForValue().get(key);
+        return byteArrayToFloatArray(bytes);
+    }
+
+
     private UUID safeParseUUID(String str) {
         try {
             return UUID.fromString(str);
         } catch (IllegalArgumentException e) {
             return null;
         }
+    }
+
+    private byte[] floatArrayToByteArray(float[] vector) {
+        ByteBuffer buffer = ByteBuffer.allocate(4 * vector.length);
+        for (float v : vector) {
+            buffer.putFloat(v);
+        }
+        return buffer.array();
+    }
+
+    private float[] byteArrayToFloatArray(byte[] bytes) {
+        if (bytes == null) return null;
+        ByteBuffer buffer = ByteBuffer.wrap(bytes);
+        float[] vector = new float[bytes.length / 4];
+        for (int i = 0; i < vector.length; i++) {
+            vector[i] = buffer.getFloat();
+        }
+        return vector;
     }
 
     private static String trackPlaysKey(UUID trackId) {
@@ -85,5 +139,13 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
 
     private static String trackPlaysKeyPrefix() {
         return "track:plays:";
+    }
+
+    public static String genreVectorKey(UUID genreId) {
+        return "genre:vector:" + genreId;
+    }
+
+    public static String trackVectorKey(UUID trackId) {
+        return "track:vector:" + trackId;
     }
 }

@@ -3,17 +3,13 @@ package com.rhythmix.coreservice.service.impl;
 import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
-import com.rhythmix.coreservice.entity.Album;
-import com.rhythmix.coreservice.entity.Artist;
-import com.rhythmix.coreservice.entity.Genre;
-import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.entity.*;
+import com.rhythmix.coreservice.enums.LikedEntityType;
 import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.exception.TrackAlreadyExistException;
 import com.rhythmix.coreservice.exception.TrackNotFoundException;
-import com.rhythmix.coreservice.repository.AlbumRepository;
-import com.rhythmix.coreservice.repository.ArtistRepository;
-import com.rhythmix.coreservice.repository.GenreRepository;
-import com.rhythmix.coreservice.repository.TrackRepository;
+import com.rhythmix.coreservice.exception.UserNotFoundException;
+import com.rhythmix.coreservice.repository.*;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.MinioService;
 import com.rhythmix.coreservice.service.TrackService;
@@ -41,6 +37,8 @@ public class TrackServiceImpl implements TrackService {
     private final GenreRepository genreRepository;
     private final MinioService minioService;
     private final ImageUploadService imageUploadService;
+    private final EntityLikeRepository entityLikeRepository;
+    private final RhythmixUserRepository userRepository;
 
     @Override
     @Transactional
@@ -190,4 +188,17 @@ public class TrackServiceImpl implements TrackService {
         log.info("Removed genre from track: {}", track);
         return track;
     }
+
+    @Override
+    public long countLikes(UUID trackId) {
+        return entityLikeRepository.countByEntityTypeAndEntityId(LikedEntityType.TRACK, trackId);
+    }
+
+    @Override
+    public boolean isLiked(UUID trackId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(LikedEntityType.TRACK, trackId, user);
+    }
+
 }
