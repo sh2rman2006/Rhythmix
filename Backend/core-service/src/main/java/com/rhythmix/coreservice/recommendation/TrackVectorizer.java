@@ -3,6 +3,7 @@ package com.rhythmix.coreservice.recommendation;
 import com.rhythmix.coreservice.config.properties.VectorizerProperties;
 import com.rhythmix.coreservice.entity.Genre;
 import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.repository.TrackRepository;
 import com.rhythmix.coreservice.service.RedisPlaybackService;
 import com.rhythmix.coreservice.utils.VectorMathUtils;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,6 +24,7 @@ public class TrackVectorizer {
     private final RedisPlaybackService redisPlaybackService;
     private final GenreVectorizer genreVectorizer;
     private final VectorizerProperties properties;
+    private final TrackRepository trackRepository;
 
     public float[] vectorForTrack(UUID trackId, Track track) {
         try {
@@ -57,4 +60,39 @@ public class TrackVectorizer {
 
         return trackVector;
     }
+
+    public float[] getVectorForTrackId(UUID trackId) {
+        float[] vector = redisPlaybackService.getTrackVector(trackId);
+        if (vector != null) return vector;
+
+        return generateAndCacheVector(trackId);
+    }
+
+    private float[] generateAndCacheVector(UUID trackId) {
+        Optional<Track> trackOpt = trackRepository.findById(trackId);
+        if (trackOpt.isEmpty()) {
+            log.warn("Track not found for vector generation: {}", trackId);
+            return null;
+        }
+
+        Track track = trackOpt.get();
+        float[] vector = vectorForTrack(trackId, track);
+
+        if (isZeroVector(vector)) {
+            log.debug("Generated zero vector for track: {}", trackId);
+        }
+
+        return vector;
+    }
+
+    private boolean isZeroVector(float[] vector) {
+        for (float v : vector) {
+            if (Math.abs(v) > 1e-6) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
 }

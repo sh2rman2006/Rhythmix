@@ -2,6 +2,11 @@ package com.rhythmix.coreservice.utils;
 
 public class VectorMathUtils {
 
+    private VectorMathUtils() {
+    }
+
+    private static final float EPSILON = 1e-8f;
+
     public static void normalize(float[] vector) {
         float norm = 0f;
         for (float v : vector) norm += v * v;
@@ -30,4 +35,25 @@ public class VectorMathUtils {
         if (!vectors.isEmpty()) divide(result, vectors.size());
         return result;
     }
+
+    public static float cosineSimilarity(float[] a, float[] b) {
+        if (a == null || b == null || a.length != b.length) {
+            return -1f; // Некорректные данные
+        }
+
+        float dot = 0f;
+        float normA = 0f;
+        float normB = 0f;
+
+        for (int i = 0; i < a.length; i++) {
+            dot += a[i] * b[i];
+            normA += a[i] * a[i];
+            normB += b[i] * b[i];
+        }
+
+        float denominator = (float) (Math.sqrt(normA) * Math.sqrt(normB)) + EPSILON;
+
+        return Math.max(-1f, Math.min(1f, dot / denominator));
+    }
+
 }
