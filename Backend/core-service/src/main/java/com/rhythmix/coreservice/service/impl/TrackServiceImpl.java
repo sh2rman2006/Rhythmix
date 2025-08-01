@@ -12,6 +12,7 @@ import com.rhythmix.coreservice.exception.UserNotFoundException;
 import com.rhythmix.coreservice.repository.*;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.MinioService;
+import com.rhythmix.coreservice.service.RedisPlaybackService;
 import com.rhythmix.coreservice.service.TrackService;
 import com.rhythmix.coreservice.utils.MergeUtils;
 import com.rhythmix.coreservice.utils.SecurityUtils;
@@ -39,6 +40,7 @@ public class TrackServiceImpl implements TrackService {
     private final ImageUploadService imageUploadService;
     private final EntityLikeRepository entityLikeRepository;
     private final RhythmixUserRepository userRepository;
+    private final RedisPlaybackService redisPlaybackService;
 
     @Override
     @Transactional
@@ -94,6 +96,7 @@ public class TrackServiceImpl implements TrackService {
                 .build();
 
         Track savedTrack = trackRepository.save(track);
+        redisPlaybackService.registerTrack(savedTrack.getId());
         log.info("Created track: {}", savedTrack);
 
         return savedTrack;
@@ -150,6 +153,7 @@ public class TrackServiceImpl implements TrackService {
         );
         minioService.delete(track.getCoverFile());
         trackRepository.delete(track);
+        redisPlaybackService.removeTrackData(trackId);
         log.info("Deleted track : {}", trackId);
     }
 
@@ -188,6 +192,19 @@ public class TrackServiceImpl implements TrackService {
         log.info("Removed genre from track: {}", track);
         return track;
     }
+
+    @Override
+    public void listenTrack(UUID trackId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+
+        boolean trackExists = redisPlaybackService.existsTrack(trackId) || trackRepository.existsById(trackId);
+
+        if (trackExists) {
+            redisPlaybackService.incrementTrackPlays(trackId);
+            redisPlaybackService.addUserPlaybackHistory(userId, trackId);
+        }
+    }
+
 
     @Override
     public long countLikes(UUID trackId) {

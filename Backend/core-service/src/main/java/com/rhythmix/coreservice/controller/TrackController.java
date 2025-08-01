@@ -2,6 +2,7 @@ package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.TrackDto;
 import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
+import com.rhythmix.coreservice.dto.create.ListenTrackDto;
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
 import com.rhythmix.coreservice.exception.GenreNotFoundException;
@@ -104,6 +105,18 @@ public class TrackController {
             return ResponseEntity.badRequest().build();
         } catch (Exception e) {
             log.error("Unexpected error while removing genre from track", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "добавить прослушивание трека", description = "Доступно для всех авторизованных пользователей")
+    @PostMapping("/playback")
+    public ResponseEntity<Void> addTrackPlay(@Valid @RequestBody ListenTrackDto trackDto, Principal principal) {
+        try {
+            trackService.listenTrack(trackDto.trackId(), principal);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while listening track", e);
             return ResponseEntity.internalServerError().build();
         }
     }

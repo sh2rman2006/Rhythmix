@@ -23,10 +23,15 @@ public interface TrackRepository extends JpaRepository<Track, UUID> {
     @EntityGraph(attributePaths = {"artist", "album", "genres"})
     Optional<Track> findWithRelationsById(UUID id);
 
+    @EntityGraph(attributePaths = {"artist", "album", "genres"})
     List<Track> findTop20ByOrderByTotalListensDesc();
 
     @EntityGraph(attributePaths = {"genres"})
     @Query("select t from Track t")
     List<Track> findAllWithGenres();
+
+    @EntityGraph(attributePaths = {"artist", "album", "genres"})
+    @Query("select t from Track t")
+    List<Track> findAllWithRelations();
 
 }

@@ -20,12 +20,20 @@ public interface RedisPlaybackService {
 
     void clearTrackPlays(UUID trackId);
 
+    boolean existsTrack(UUID trackId);
+
+    void registerTrack(UUID trackId);
+
+    void removeTrackData(UUID trackId);
+
     // Вектора жанров
     void putGenreVector(UUID genreId, float[] vector, Duration ttl);
+
     float[] getGenreVector(UUID genreId);
 
     // Вектора треков
     void putTrackVector(UUID trackId, float[] vector, Duration ttl);
+
     float[] getTrackVector(UUID trackId);
 
 }

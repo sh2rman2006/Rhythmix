@@ -28,8 +28,8 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
 
     @Override
     public long getTrackPlays(UUID trackId) {
-        Long plays = (Long) redisTemplate.opsForValue().get(trackPlaysKey(trackId));
-        return plays != null ? plays : 0;
+        Object raw = redisTemplate.opsForValue().get(trackPlaysKey(trackId));
+        return raw != null ? ((Number) raw).longValue() : 0L;
     }
 
     @Override
@@ -68,6 +68,24 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
     @Override
     public void clearTrackPlays(UUID trackId) {
         redisTemplate.delete(trackPlaysKey(trackId));
+    }
+
+    @Override
+    public boolean existsTrack(UUID trackId) {
+        return redisTemplate.hasKey(trackExistsKey(trackId));
+    }
+
+    @Override
+    public void registerTrack(UUID trackId) {
+        String key = trackPlaysKey(trackId);
+        redisTemplate.opsForValue().setIfAbsent(key, 0L);
+    }
+
+    @Override
+    public void removeTrackData(UUID trackId) {
+        String playsKey = trackPlaysKey(trackId);
+        String vectorKey = trackVectorKey(trackId);
+        redisTemplate.delete(Arrays.asList(playsKey, vectorKey));
     }
 
 
@@ -139,6 +157,10 @@ public class RedisPlaybackServiceImpl implements RedisPlaybackService {
 
     private static String trackPlaysKeyPrefix() {
         return "track:plays:";
+    }
+
+    private static String trackExistsKey(UUID trackId) {
+        return "track:exists:" + trackId;
     }
 
     public static String genreVectorKey(UUID genreId) {

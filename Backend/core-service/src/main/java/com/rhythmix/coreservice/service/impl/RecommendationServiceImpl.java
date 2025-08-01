@@ -75,7 +75,7 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private List<Track> getRecommendationCandidates(Set<UUID> excludedTrackIds) {
-        return trackRepository.findAll().stream()
+        return trackRepository.findAllWithRelations().stream()
                 .filter(track -> !excludedTrackIds.contains(track.getId()))
                 .collect(Collectors.toList());
     }
