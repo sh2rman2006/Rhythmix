@@ -21,6 +21,11 @@ spring:
     hibernate:
       ddl-auto: validate
     open-in-view: false
+  # redis
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   # kafka
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092,localhost:9094}
@@ -43,6 +48,16 @@ minio:
   access-key: ${MINIO_ROOT_USER:minio_user}
   secret-key: ${MINIO_ROOT_PASSWORD:minio_password}
   bucket: rhythmix
+# sync redis with pgsql
+playback:
+  sync:
+    interval-ms: 300000
+# vectors
+rhythmix:
+  vectorizer:
+    dimension: 32
+    decay-factor: 0.65
+    vector-ttl: 6h
 
 server:
   port: 8081

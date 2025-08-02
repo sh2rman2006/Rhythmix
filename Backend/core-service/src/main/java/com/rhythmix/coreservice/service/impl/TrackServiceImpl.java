@@ -3,19 +3,16 @@ package com.rhythmix.coreservice.service.impl;
 import com.rhythmix.coreservice.dto.create.AddGenreToEntityDto;
 import com.rhythmix.coreservice.dto.create.TrackCreateDto;
 import com.rhythmix.coreservice.dto.update.TrackUpdateDto;
-import com.rhythmix.coreservice.entity.Album;
-import com.rhythmix.coreservice.entity.Artist;
-import com.rhythmix.coreservice.entity.Genre;
-import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.entity.*;
+import com.rhythmix.coreservice.enums.LikedEntityType;
 import com.rhythmix.coreservice.exception.GenreNotFoundException;
 import com.rhythmix.coreservice.exception.TrackAlreadyExistException;
 import com.rhythmix.coreservice.exception.TrackNotFoundException;
-import com.rhythmix.coreservice.repository.AlbumRepository;
-import com.rhythmix.coreservice.repository.ArtistRepository;
-import com.rhythmix.coreservice.repository.GenreRepository;
-import com.rhythmix.coreservice.repository.TrackRepository;
+import com.rhythmix.coreservice.exception.UserNotFoundException;
+import com.rhythmix.coreservice.repository.*;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.MinioService;
+import com.rhythmix.coreservice.service.RedisPlaybackService;
 import com.rhythmix.coreservice.service.TrackService;
 import com.rhythmix.coreservice.utils.MergeUtils;
 import com.rhythmix.coreservice.utils.SecurityUtils;
@@ -41,7 +38,9 @@ public class TrackServiceImpl implements TrackService {
     private final GenreRepository genreRepository;
     private final MinioService minioService;
     private final ImageUploadService imageUploadService;
-
+    private final EntityLikeRepository entityLikeRepository;
+    private final RhythmixUserRepository userRepository;
+    private final RedisPlaybackService redisPlaybackService;
 
     @Override
     @Transactional
@@ -50,8 +49,17 @@ public class TrackServiceImpl implements TrackService {
             throw new TrackAlreadyExistException("Track with title '" + trackCreateDto.getTitle() + "' already exists.");
         }
 
-        String coverUrl = imageUploadService.normalizeUrl(trackCreateDto.getCoverUrl());
-        String coverFile = imageUploadService.uploadImageFile(trackCreateDto.getCoverFile(), UUID.randomUUID().toString());
+        boolean hasCoverFile = trackCreateDto.getCoverFile() != null && !trackCreateDto.getCoverFile().isEmpty();
+        boolean hasCoverUrl = trackCreateDto.getCoverUrl() != null && !trackCreateDto.getCoverUrl().isBlank();
+
+        String coverUrl = null;
+        String fileUrl = null;
+
+        if (hasCoverFile) {
+            fileUrl = imageUploadService.uploadImageFile(trackCreateDto.getCoverFile(), UUID.randomUUID().toString());
+        } else if (hasCoverUrl) {
+            coverUrl = imageUploadService.normalizeUrl(trackCreateDto.getCoverUrl());
+        }
 
         if (trackCreateDto.getAudioFile() == null) throw new IllegalArgumentException("No audio file provided.");
 
@@ -77,7 +85,7 @@ public class TrackServiceImpl implements TrackService {
                 .description(trackCreateDto.getDescription())
                 .audioFile(audioFile)
                 .coverUrl(coverUrl)
-                .coverFile(coverFile)
+                .coverFile(fileUrl)
                 .duration(duration)
                 .explicit(trackCreateDto.getExplicit())
                 .releaseDate(trackCreateDto.getReleaseDate())
@@ -88,6 +96,7 @@ public class TrackServiceImpl implements TrackService {
                 .build();
 
         Track savedTrack = trackRepository.save(track);
+        redisPlaybackService.registerTrack(savedTrack.getId());
         log.info("Created track: {}", savedTrack);
 
         return savedTrack;
@@ -97,19 +106,35 @@ public class TrackServiceImpl implements TrackService {
     @Transactional
     public Track updateTrack(TrackUpdateDto trackUpdateDto) {
         Track track = trackRepository.findWithArtistAndAlbumById(trackUpdateDto.getId())
-                .orElseThrow(() -> new TrackNotFoundException("Track not found with id: " + trackUpdateDto.getId() + "not found"));
-
-        String coverFile = imageUploadService.uploadImageFile(trackUpdateDto.getCoverFile(), UUID.randomUUID().toString());
+                .orElseThrow(() -> new TrackNotFoundException("Track with id: '" + trackUpdateDto.getId() + "' not found"));
 
         Album album = albumRepository.findWithArtistById(trackUpdateDto.getAlbumId()).orElse(null);
         if (album != null && album.getArtist().getId().equals(track.getArtist().getId())) {
             track.setAlbum(album);
         }
 
+        boolean hasNewCoverFile = trackUpdateDto.getCoverFile() != null && !trackUpdateDto.getCoverFile().isEmpty();
+        boolean hasNewCoverUrl = trackUpdateDto.getCoverUrl() != null && !trackUpdateDto.getCoverUrl().isBlank();
+
+        if (hasNewCoverFile) {
+            if (track.getCoverFile() != null) {
+                minioService.delete(track.getCoverFile());
+            }
+
+            String fileUrl = imageUploadService.uploadImageFile(trackUpdateDto.getCoverFile(), UUID.randomUUID().toString());
+            track.setCoverFile(fileUrl);
+            track.setCoverUrl(null);
+        } else if (hasNewCoverUrl) {
+            if (track.getCoverFile() != null) {
+                minioService.delete(track.getCoverFile());
+            }
+
+            track.setCoverUrl(trackUpdateDto.getCoverUrl());
+            track.setCoverFile(null);
+        }
+
         track.setTitle(MergeUtils.preferNewIfPresent(track.getTitle(), trackUpdateDto.getTitle()));
         track.setDescription(MergeUtils.preferNewIfPresent(track.getDescription(), trackUpdateDto.getDescription()));
-        track.setCoverUrl(MergeUtils.preferNewIfPresent(track.getCoverUrl(), trackUpdateDto.getCoverUrl()));
-        track.setCoverFile(MergeUtils.preferNewIfPresent(track.getCoverFile(), coverFile));
         track.setExplicit(MergeUtils.preferNewIfPresent(track.getExplicit(), trackUpdateDto.getExplicit()));
         track.setReleaseDate(MergeUtils.preferNewIfPresent(track.getReleaseDate(), trackUpdateDto.getReleaseDate()));
 
@@ -123,11 +148,13 @@ public class TrackServiceImpl implements TrackService {
     @Override
     @Transactional
     public void deleteTrack(UUID trackId) {
-        if (!trackRepository.existsById(trackId)) {
-            throw new TrackNotFoundException("Track not found with id: " + trackId);
-        }
-        trackRepository.deleteById(trackId);
-        log.info("Deleted track with id: {}", trackId);
+        Track track = trackRepository.findById(trackId).orElseThrow(
+                () -> new TrackNotFoundException("Track not found with id: " + trackId)
+        );
+        minioService.delete(track.getCoverFile());
+        trackRepository.delete(track);
+        redisPlaybackService.removeTrackData(trackId);
+        log.info("Deleted track : {}", trackId);
     }
 
     @Override
@@ -165,4 +192,30 @@ public class TrackServiceImpl implements TrackService {
         log.info("Removed genre from track: {}", track);
         return track;
     }
+
+    @Override
+    public void listenTrack(UUID trackId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+
+        boolean trackExists = redisPlaybackService.existsTrack(trackId) || trackRepository.existsById(trackId);
+
+        if (trackExists) {
+            redisPlaybackService.incrementTrackPlays(trackId);
+            redisPlaybackService.addUserPlaybackHistory(userId, trackId);
+        }
+    }
+
+
+    @Override
+    public long countLikes(UUID trackId) {
+        return entityLikeRepository.countByEntityTypeAndEntityId(LikedEntityType.TRACK, trackId);
+    }
+
+    @Override
+    public boolean isLiked(UUID trackId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(LikedEntityType.TRACK, trackId, user);
+    }
+
 }

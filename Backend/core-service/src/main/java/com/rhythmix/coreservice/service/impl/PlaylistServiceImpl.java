@@ -3,14 +3,11 @@ package com.rhythmix.coreservice.service.impl;
 import com.rhythmix.coreservice.dto.create.AddTrackToPlaylistDto;
 import com.rhythmix.coreservice.dto.create.PlaylistCreateDto;
 import com.rhythmix.coreservice.dto.update.PlaylistUpdateDto;
-import com.rhythmix.coreservice.entity.Playlist;
-import com.rhythmix.coreservice.entity.PlaylistTrack;
-import com.rhythmix.coreservice.entity.PlaylistTrackId;
-import com.rhythmix.coreservice.entity.Track;
+import com.rhythmix.coreservice.entity.*;
+import com.rhythmix.coreservice.enums.LikedEntityType;
+import com.rhythmix.coreservice.enums.SystemPlaylistType;
 import com.rhythmix.coreservice.exception.*;
-import com.rhythmix.coreservice.repository.PlaylistRepository;
-import com.rhythmix.coreservice.repository.PlaylistTrackRepository;
-import com.rhythmix.coreservice.repository.TrackRepository;
+import com.rhythmix.coreservice.repository.*;
 import com.rhythmix.coreservice.service.ImageUploadService;
 import com.rhythmix.coreservice.service.PlaylistService;
 import com.rhythmix.coreservice.utils.MergeUtils;
@@ -28,10 +25,12 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class PlaylistServiceImpl implements PlaylistService {
+    private final RhythmixUserRepository userRepository;
     private final PlaylistRepository playlistRepository;
     private final PlaylistTrackRepository playlistTrackRepository;
     private final TrackRepository trackRepository;
     private final ImageUploadService imageUploadService;
+    private final EntityLikeRepository entityLikeRepository;
 
     @Override
     public Playlist createPlaylist(PlaylistCreateDto playlistCreateDto, Principal principal) {
@@ -161,6 +160,121 @@ public class PlaylistServiceImpl implements PlaylistService {
     }
 
     @Override
+    @Transactional
+    public void likeTrack(UUID trackId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        Playlist liked = playlistRepository.findByOwnerIdAndSystemType(userId, SystemPlaylistType.LIKED)
+                .orElseThrow(() -> new PlaylistNotFoundException("Liked playlist not found for user " + userId));
+
+        Track track = trackRepository.findById(trackId)
+                .orElseThrow(() -> new TrackNotFoundException("Track not found with id: " + trackId));
+
+        if (playlistTrackRepository.existsByPlaylistAndTrack(liked, track)) {
+            throw new TrackAlreadyInPlaylistException("Track already liked.");
+        }
+
+        PlaylistTrackId id = new PlaylistTrackId(liked.getId(), track.getId());
+        playlistTrackRepository.save(new PlaylistTrack(id, liked, track, Instant.now()));
+
+        boolean likeExists = entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(LikedEntityType.TRACK, trackId, user);
+        if (!likeExists) {
+            entityLikeRepository.save(
+                    EntityLike.builder()
+                            .entityType(LikedEntityType.TRACK)
+                            .entityId(trackId)
+                            .user(user)
+                            .createdAt(Instant.now())
+                            .build()
+            );
+        }
+        log.info("Liked track: {} from playlist: {}", track, liked);
+    }
+
+    @Override
+    @Transactional
+    public void unlikeTrack(UUID trackId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        Playlist liked = playlistRepository.findByOwnerIdAndSystemType(userId, SystemPlaylistType.LIKED)
+                .orElseThrow(() -> new PlaylistNotFoundException("Liked playlist not found."));
+
+        PlaylistTrackId id = new PlaylistTrackId(liked.getId(), trackId);
+        PlaylistTrack pt = playlistTrackRepository.findById(id)
+                .orElseThrow(() -> new PlaylistTrackNotFoundException("Track not liked."));
+        playlistTrackRepository.delete(pt);
+
+        EntityLike like = entityLikeRepository.findByEntityTypeAndEntityIdAndUser(LikedEntityType.TRACK, trackId, user)
+                .orElseThrow(() -> new TrackNotFoundException("Track not liked"));
+        entityLikeRepository.delete(like);
+
+        log.info("Unliked track: {} from playlist: {}", trackId, liked);
+    }
+
+    @Override
+    public boolean isLiked(UUID trackId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(LikedEntityType.TRACK, trackId, user);
+    }
+
+    @Override
+    public void likePlaylist(UUID playlistId, Principal principal) {
+        Playlist playlist = playlistRepository.findById(playlistId).orElseThrow(
+                () -> new PlaylistNotFoundException("Playlist not found with id: " + playlistId)
+        );
+
+        if (!playlist.getIsPublic()) {
+            throw new PlaylistAccessDeniedException("Cannot like a private playlist with id: " + playlistId);
+        }
+
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser userRef = RhythmixUser.builder().id(userId).build();
+
+        if (entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.PLAYLIST, playlistId, userRef)) {
+            throw new IllegalArgumentException("Playlist with id: " + playlistId + " is already liked by user with id: " + userId);
+        }
+
+        entityLikeRepository.save(
+                EntityLike.builder()
+                        .entityType(LikedEntityType.PLAYLIST)
+                        .entityId(playlistId)
+                        .user(userRef)
+                        .createdAt(Instant.now())
+                        .build()
+        );
+
+        log.info("Liked playlist: {} by user: {}", playlistId, userId);
+    }
+
+    @Override
+    public void unlikePlaylist(UUID playlistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser userRef = RhythmixUser.builder().id(userId).build();
+
+        entityLikeRepository.findByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.PLAYLIST, playlistId, userRef
+        ).ifPresent(entityLikeRepository::delete);
+
+        log.info("Unliked playlist with id: {} by user: {}", playlistId, userId);
+    }
+
+    @Override
+    public boolean isPlaylistLiked(UUID playlistId, Principal principal) {
+        UUID userId = SecurityUtils.extractUserId(principal);
+        RhythmixUser userRef = RhythmixUser.builder().id(userId).build();
+
+        return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
+                LikedEntityType.PLAYLIST, playlistId, userRef
+        );
+    }
+
+    @Override
     public Playlist createLikedPlaylistForUser(UUID userId) {
         Instant now = Instant.now();
         return playlistRepository.save(
@@ -172,6 +286,7 @@ public class PlaylistServiceImpl implements PlaylistService {
                         .ownerId(userId)
                         .isPublic(false)
                         .isSystem(true)
+                        .systemType(SystemPlaylistType.LIKED)
                         .createdAt(now)
                         .updatedAt(now)
                         .build()

@@ -22,4 +22,17 @@ public interface PlaylistService {
     PlaylistTrack addTrackToPlaylist(AddTrackToPlaylistDto addTrackToPlaylistDto, Principal principal);
 
     void deleteTrackFromPlaylist(UUID playlistId, UUID trackId, Principal principal);
+
+    void likeTrack(UUID trackId, Principal principal);
+
+    void unlikeTrack(UUID trackId, Principal principal);
+
+    boolean isLiked(UUID trackId, Principal principal);
+
+    void likePlaylist(UUID playlistId, Principal principal);
+
+    void unlikePlaylist(UUID playlistId, Principal principal);
+
+    boolean isPlaylistLiked(UUID playlistId, Principal principal);
+
 }

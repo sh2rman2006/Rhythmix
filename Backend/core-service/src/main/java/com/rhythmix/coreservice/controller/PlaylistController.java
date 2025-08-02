@@ -2,6 +2,7 @@ package com.rhythmix.coreservice.controller;
 
 import com.rhythmix.coreservice.dto.PlaylistDto;
 import com.rhythmix.coreservice.dto.PlaylistTrackDto;
+import com.rhythmix.coreservice.dto.create.AddEntityLikeDto;
 import com.rhythmix.coreservice.dto.create.AddTrackToPlaylistDto;
 import com.rhythmix.coreservice.dto.create.PlaylistCreateDto;
 import com.rhythmix.coreservice.dto.update.PlaylistUpdateDto;
@@ -12,6 +13,7 @@ import com.rhythmix.coreservice.service.PlaylistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -115,6 +117,38 @@ public class PlaylistController {
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             log.error("Unexpected error while deleting track from playlist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Лайкнуть трек", description = "Доступно для всех пользователей")
+    @PostMapping("/like")
+    public ResponseEntity<Void> likeArtist(@Valid @RequestBody AddEntityLikeDto likeDto, Principal principal) {
+        try {
+            playlistService.likeTrack(likeDto.entityId(), principal);
+            return ResponseEntity.ok().build();
+        } catch (TrackNotFoundException | PlaylistNotFoundException | UserNotFoundException |
+                 IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (TrackAlreadyInPlaylistException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while liking artist", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @Operation(summary = "Убрать лайк у трека", description = "Доступно для всех пользователей")
+    @PostMapping("/{trackId}/unlike")
+    public ResponseEntity<Void> unlikeArtist(@PathVariable @NotNull UUID trackId, Principal principal) {
+        try {
+            playlistService.unlikeTrack(trackId, principal);
+            return ResponseEntity.ok().build();
+        } catch (TrackNotFoundException | PlaylistNotFoundException | UserNotFoundException |
+                 IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while liking artist", e);
             return ResponseEntity.internalServerError().build();
         }
     }

@@ -1,4 +1,4 @@
-package com.rhythmix.coreservice.contentTypes;
+package com.rhythmix.coreservice.enums;
 
 import lombok.Getter;
 

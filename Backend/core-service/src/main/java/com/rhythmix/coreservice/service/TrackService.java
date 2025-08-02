@@ -20,4 +20,10 @@ public interface TrackService {
     Track addGenreToTrack(AddGenreToEntityDto addGenreToEntityDto);
 
     Track removeGenreFromTrack(UUID trackGenreId, UUID trackId);
+
+    void listenTrack(UUID trackId, Principal principal);
+
+    long countLikes(UUID trackId);
+
+    boolean isLiked(UUID trackId, Principal principal);
 }

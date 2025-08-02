@@ -1,8 +1,5 @@
 package com.rhythmix.coreservice.dto;
 
-import com.rhythmix.coreservice.entity.RhythmixUser;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -15,7 +12,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * DTO for {@link RhythmixUser}
+ * DTO for {@link com.rhythmix.coreservice.entity.RhythmixUser}
  */
 @Data
 @AllArgsConstructor
@@ -25,11 +22,9 @@ public class RhythmixUserDto implements Serializable {
     private UUID id;
     @NotNull
     @Size(max = 50)
-    @NotBlank
     private String username;
     @NotNull
     @Size(max = 100)
-    @Email
     private String email;
     @Size(max = 50)
     private String firstName;
@@ -39,4 +34,6 @@ public class RhythmixUserDto implements Serializable {
     private Instant createdAt;
     @NotNull
     private Instant updatedAt;
+    private String avatarSeed;
+    private String backgroundUrl;
 }

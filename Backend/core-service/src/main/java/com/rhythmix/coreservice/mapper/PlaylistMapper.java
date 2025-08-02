@@ -20,6 +20,7 @@ public class PlaylistMapper implements EntitiesMapper<Playlist, PlaylistDto> {
                 playlist.getOwnerId(),
                 playlist.getIsPublic(),
                 playlist.getIsSystem(),
+                playlist.getSystemType(),
                 playlist.getCreatedAt(),
                 playlist.getUpdatedAt()
         );
@@ -35,6 +36,7 @@ public class PlaylistMapper implements EntitiesMapper<Playlist, PlaylistDto> {
                 .ownerId(playlistDto.getOwnerId())
                 .isPublic(playlistDto.getIsPublic())
                 .isSystem(playlistDto.getIsSystem())
+                .systemType(playlistDto.getSystemPlaylistType())
                 .createdAt(playlistDto.getCreatedAt())
                 .updatedAt(playlistDto.getUpdatedAt())
                 .build();
