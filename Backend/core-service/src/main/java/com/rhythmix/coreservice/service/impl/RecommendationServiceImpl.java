@@ -99,7 +99,10 @@ public class RecommendationServiceImpl implements RecommendationService {
     }
 
     private List<Track> getFallbackRecommendations() {
-        return trackRepository.findTop20ByOrderByTotalListensDesc();
+        List<Track> topTrackIds = trackRepository.findTop20ByOrderByTotalListensDesc();
+        return trackRepository.findWithRelationsByIdIn(
+                topTrackIds.stream().filter(Objects::nonNull).map(Track::getId).toList()
+        );
     }
 
     private record TrackScore(Track track, float score) {
