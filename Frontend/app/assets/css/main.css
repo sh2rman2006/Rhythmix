@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+.dark-page {
+  background-color: black;
+  min-height: 100vh;
+  min-width: 100vw;
+  color: white;
+}
