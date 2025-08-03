@@ -1,30 +1,18 @@
 <script setup lang="ts">
-type Form = {
-  email: string;
-  password: string;
-};
+import { NuxtLink } from "#components";
+import { useRecommendationApi } from "~/composables/api/useRecommendationApi";
 
 const colorMode = useColorMode();
 colorMode.preference = `dark`;
 const isDark = computed((): boolean => colorMode.preference === "dark");
 
-const authStore = useAuthStore();
-const form = reactive<Form>({
-  email: "",
-  password: "",
-});
+const data = await useRecommendationApi().getRecommendations();
 </script>
 
 <template>
   <div :class="{ 'dark-page': isDark }">
     <h1>Привет, Nuxt и Tailwind!</h1>
-    <form
-      @submit.prevent="authStore.login(form.email, form.password)"
-      style="display: flex; flex-direction: column"
-    >
-      <input v-model="form.email" type="text" placeholder="email" />
-      <input v-model="form.password" type="text" placeholder="password" />
-      <button type="submit">отправить</button>
-    </form>
+    <NuxtLink to="/auth/login">Войти</NuxtLink>
+    <div>{{ data }}</div>
   </div>
 </template>

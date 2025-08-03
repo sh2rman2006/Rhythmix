@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     public: {
       keycloakIssuer: process.env.KEYCLOAK_ISSUER,
       keycloakClientId: process.env.KEYCLOAK_CLIENT_ID,
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8080/api",
     },
   },
   

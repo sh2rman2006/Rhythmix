@@ -159,5 +159,42 @@ export const useAuthStore = defineStore("auth", {
       const router = useRouter();
       router.push("/login");
     },
+
+    async serverRefreshTokens(): Promise<{
+      access_token: string;
+      refresh_token: string;
+    } | null> {
+
+      const config = useRuntimeConfig();
+      const cookie = useCookie("refresh_token");
+      const refresh = cookie.value;
+
+      if (!refresh) return null;
+
+      const params = new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: config.public.keycloakClientId,
+        refresh_token: refresh,
+      });
+
+      try {
+        const data = await $fetch<KeycloakTokenResponse>(
+          `${config.public.keycloakIssuer}/protocol/openid-connect/token`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: params.toString(),
+          }
+        );
+
+        return {
+          access_token: data.access_token,
+          refresh_token: data.refresh_token,
+        };
+      } catch (e) {
+        console.error("Ошибка обновления токена в middleware:", e);
+        return null;
+      }
+    },
   },
 });

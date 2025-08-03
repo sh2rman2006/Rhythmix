@@ -2,8 +2,9 @@
 @import "@nuxt/ui";
 
 .dark-page {
-  background-color: black;
-  min-height: 100vh;
-  min-width: 100vw;
-  color: white;
+  @apply min-h-screen min-w-full bg-gray-950 text-white;
+
+  @apply font-sans leading-relaxed tracking-wide;
+
+  @apply transition-all duration-300 ease-in-out;
 }
