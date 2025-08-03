@@ -41,7 +41,7 @@ export const useAuthStore = defineStore("auth", {
         username: email,
         password,
         grant_type: "password",
-        client_id: useRuntimeConfig().public.keycloakClientId,
+        client_id: config.public.keycloakClientId,
       });
 
       try {
@@ -93,7 +93,7 @@ export const useAuthStore = defineStore("auth", {
 
       const params = new URLSearchParams({
         grant_type: "refresh_token",
-        client_id: useRuntimeConfig().public.keycloakClientId,
+        client_id: config.public.keycloakClientId,
         refresh_token: this.refreshToken,
       });
 
