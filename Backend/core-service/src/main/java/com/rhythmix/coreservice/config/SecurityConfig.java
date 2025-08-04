@@ -43,24 +43,14 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "http://192.168.3.10",
+                "http://192.168.3.10:3000",
                 "https://production-domain.com"
         ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"
         ));
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization", "Cache-Control", "Content-Type",
-                "X-Requested-With", "Accept", "Origin", "X-Auth-Token",
-                "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"
-        ));
-        configuration.setExposedHeaders(Arrays.asList(
-                "Authorization", "Content-Disposition", "X-Custom-Header",
-                "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"
-        ));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
 

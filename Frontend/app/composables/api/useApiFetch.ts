@@ -2,12 +2,12 @@ import type { UseFetchOptions } from "#app";
 
 export function useApiFetch<T>(url: string, options: UseFetchOptions<T> = {}) {
   const config = useRuntimeConfig();
-  const token = useCookie("access_token");
+  const token = useAuthStore().accessToken;
 
   const headers = { ...((options.headers as Record<string, string>) || {}) };
 
-  if (token.value) {
-    headers["Authorization"] = `Bearer ${token.value}`;
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
   return useFetch<T>(url, {
