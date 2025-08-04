@@ -67,7 +67,7 @@ export const useAuthStore = defineStore("auth", {
 
         this.startRefreshTimer();
 
-        await router.push("/");
+        await router.replace("/");
       } catch (error: any) {
         console.error("Ошибка при входе:", error.message || error);
         throw error;

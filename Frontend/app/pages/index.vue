@@ -6,7 +6,7 @@ const colorMode = useColorMode();
 colorMode.preference = `dark`;
 const isDark = computed((): boolean => colorMode.preference === "dark");
 
-const data = await useRecommendationApi().getRecommendations();
+const { data } = await useRecommendationApi().getRecommendations();
 </script>
 
 <template>
