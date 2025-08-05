@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { NuxtLink } from "#components";
-import { useRecommendationApi } from "~/composables/api/useRecommendationApi";
+import { useUserApi } from "~/composables/api/useUserApi";
+import type { UserDto } from "~/types/dto/UserDto";
 
-const colorMode = useColorMode();
-colorMode.preference = `dark`;
-const isDark = computed((): boolean => colorMode.preference === "dark");
-
-const { data } = await useRecommendationApi().getRecommendations();
+const user: UserDto = await useUserApi().getMeSSR();
 </script>
 
 <template>
-  <div :class="{ 'dark-page': isDark }">
+  <div>
     <h1>Привет, Nuxt и Tailwind!</h1>
     <NuxtLink to="/auth/login">Войти</NuxtLink>
-    <div>{{ data }}</div>
+    <div>{{ user }}</div>
   </div>
 </template>

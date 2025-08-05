@@ -6,6 +6,7 @@ export default defineNuxtConfig({
     "@nuxt/ui",
     "@pinia/nuxt",
     "@vueuse/nuxt",
+    "@hypernym/nuxt-anime",
   ],
 
   ssr: true,
@@ -20,10 +21,14 @@ export default defineNuxtConfig({
       apiBase: process.env.NUXT_PUBLIC_API_BASE || "http://localhost:8080/api",
     },
   },
-  
+
   compatibilityDate: "2025-07-15",
 
   eslint: {
     checker: true,
   },
+
+  anime: {
+    composables: true
+  }
 });

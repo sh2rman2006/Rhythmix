@@ -5,17 +5,21 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const authStore = useAuthStore();
 
-  const tokens = await authStore.serverRefreshTokens();
+  try {
+    const tokens = await authStore.serverRefreshTokens();
 
-  if (!tokens) {
-    return navigateTo("/auth/login", { replace: true });
+    if (!tokens) {
+      return navigateTo("/auth/login", { replace: true });
+    }
+
+    await $fetch("/api/auth/set-cookie", {
+      method: "POST",
+      body: tokens,
+    });
+
+    authStore.setAccessToken(tokens.access_token);
+    authStore.setRefreshToken(tokens.refresh_token);
+  } catch (error) {
+    return abortNavigation();
   }
-
-  await $fetch("/api/auth/set-cookie", {
-    method: "POST",
-    body: tokens,
-  });
-
-  authStore.setAccessToken(tokens.access_token);
-  authStore.setRefreshToken(tokens.refresh_token);
 });

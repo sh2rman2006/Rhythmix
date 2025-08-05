@@ -43,7 +43,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "http://192.168.3.10:3000",
+                "http://192.168.3.29:3000",
                 "https://production-domain.com"
         ));
         configuration.setAllowedMethods(Arrays.asList(
