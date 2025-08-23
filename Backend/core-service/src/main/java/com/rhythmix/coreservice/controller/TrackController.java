@@ -121,4 +121,17 @@ public class TrackController {
         }
     }
 
+    @Operation(summary = "Получить информацию о треке по его ID", description = "Доступно всем пользователям")
+    @GetMapping("/{trackId}")
+    public ResponseEntity<TrackDto> getTrackById(@PathVariable @NotNull UUID trackId) {
+        try {
+            return ResponseEntity.ok(trackMapper.toDto(trackService.getTrack(trackId)));
+        } catch (TrackNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while getting track by id", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 }

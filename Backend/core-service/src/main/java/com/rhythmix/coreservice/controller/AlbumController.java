@@ -138,4 +138,17 @@ public class AlbumController {
         }
     }
 
+    @Operation(summary = "Получить информацию об альбоме по ID", description = "Доступно всем пользователям")
+    @GetMapping("/{albumId}")
+    public ResponseEntity<AlbumDto> getAlbumById(@PathVariable @NotNull UUID albumId) {
+        try {
+            return ResponseEntity.ok(albumMapper.toDto(albumService.getAlbum(albumId)));
+        } catch (AlbumNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while getting album by ID", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
 }

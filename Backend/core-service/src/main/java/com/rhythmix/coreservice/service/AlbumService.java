@@ -24,4 +24,6 @@ public interface AlbumService {
     void unlikeAlbum(UUID albumId, Principal principal);
 
     boolean isLiked(UUID albumId, Principal principal);
+
+    Album getAlbum(UUID albumId);
 }

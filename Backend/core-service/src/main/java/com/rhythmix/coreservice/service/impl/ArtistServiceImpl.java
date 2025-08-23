@@ -213,4 +213,9 @@ public class ArtistServiceImpl implements ArtistService {
         return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
                 LikedEntityType.ARTIST, artistId, user);
     }
+
+    @Override
+    public Artist getArtist(UUID artistId) {
+        return artistRepository.findById(artistId).orElseThrow(() -> new ArtistNotFoundException("Artist not found with id '" + artistId + "'"));
+    }
 }

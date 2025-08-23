@@ -218,4 +218,11 @@ public class TrackServiceImpl implements TrackService {
         return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(LikedEntityType.TRACK, trackId, user);
     }
 
+    @Override
+    public Track getTrack(UUID trackId) {
+        return trackRepository.findWithRelationsById(trackId).orElseThrow(
+                () -> new TrackNotFoundException("Track not found with id '" + trackId + "'")
+        );
+    }
+
 }
