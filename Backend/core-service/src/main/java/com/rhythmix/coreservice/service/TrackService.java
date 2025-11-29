@@ -26,4 +26,6 @@ public interface TrackService {
     long countLikes(UUID trackId);
 
     boolean isLiked(UUID trackId, Principal principal);
+
+    Track getTrack(UUID trackId);
 }

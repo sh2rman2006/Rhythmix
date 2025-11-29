@@ -26,4 +26,6 @@ public interface ArtistService {
     void unlikeArtist(UUID artistId, Principal principal);
 
     boolean isLiked(UUID artistId, Principal principal);
+
+    Artist getArtist(UUID artistId);
 }

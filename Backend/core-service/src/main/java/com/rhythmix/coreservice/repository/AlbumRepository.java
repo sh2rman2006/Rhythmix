@@ -2,6 +2,7 @@ package com.rhythmix.coreservice.repository;
 
 import com.rhythmix.coreservice.entity.Album;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -22,4 +23,6 @@ public interface AlbumRepository extends JpaRepository<Album, UUID> {
 
     @EntityGraph(attributePaths = {"artist", "tracks"})
     Optional<Album> findWithArtistAndTracksById(@NotNull UUID id);
+
+    List<Album> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 }

@@ -41,7 +41,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_URL:http://keycloak.local:8080/realms/Rhythmix}
+          issuer-uri: ${KEYCLOAK_URL:http://keycloak.lan:8080/realms/Rhythmix}
 # minio
 minio:
   url: ${MINIO_URL:http://localhost:9000/}

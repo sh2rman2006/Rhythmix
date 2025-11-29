@@ -1,6 +1,7 @@
 package com.rhythmix.coreservice.repository;
 
 import com.rhythmix.coreservice.entity.Track;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -37,4 +38,5 @@ public interface TrackRepository extends JpaRepository<Track, UUID> {
     @Query("select t from Track t")
     List<Track> findAllWithRelations();
 
+    List<Track> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 }

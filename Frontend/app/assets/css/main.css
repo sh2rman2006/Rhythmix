@@ -1,0 +1,10 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+.dark-page {
+  @apply min-h-screen min-w-full bg-gray-950 text-white;
+
+  @apply font-sans leading-relaxed tracking-wide;
+
+  @apply transition-all duration-300 ease-in-out;
+}

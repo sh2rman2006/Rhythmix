@@ -6,6 +6,8 @@ import com.rhythmix.coreservice.service.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class TrackMapper implements EntitiesMapper<Track, TrackDto> {
@@ -53,5 +55,26 @@ public class TrackMapper implements EntitiesMapper<Track, TrackDto> {
                 .artist(artistMapper.toEntity(trackDto.getArtist()))
                 .album(albumMapper.toEntity(trackDto.getAlbum()))
                 .build();
+    }
+
+    public TrackDto toCleanDto(Track track) {
+        return new TrackDto(
+                track.getId(),
+                track.getTitle(),
+                track.getDescription(),
+                null,
+                null,
+                track.getDuration(),
+                track.getExplicit(),
+                track.getReleaseDate(),
+                track.getUploadedAt(),
+                null,
+                null,
+                null
+        );
+    }
+
+    public List<TrackDto> toCleanDtoList(List<Track> tracks) {
+        return tracks.stream().map(this::toCleanDto).toList();
     }
 }

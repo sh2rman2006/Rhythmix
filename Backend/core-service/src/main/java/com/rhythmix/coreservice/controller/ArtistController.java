@@ -137,4 +137,17 @@ public class ArtistController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @Operation(summary = "Получить информацию об артисте по ID", description = "Доступно всем пользователям")
+    @GetMapping("/{artistId}")
+    public ResponseEntity<ArtistDto> getArtistById(@PathVariable @NotNull UUID artistId) {
+        try {
+            return ResponseEntity.ok(artistMapper.toDto(artistService.getArtist(artistId)));
+        } catch (ArtistNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            log.error("Unexpected error while getting artist by ID", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

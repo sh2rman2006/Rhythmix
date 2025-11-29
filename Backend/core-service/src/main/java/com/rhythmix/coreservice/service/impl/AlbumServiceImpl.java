@@ -222,4 +222,10 @@ public class AlbumServiceImpl implements AlbumService {
         return entityLikeRepository.existsByEntityTypeAndEntityIdAndUser(
                 LikedEntityType.ALBUM, albumId, user);
     }
+
+    @Override
+    public Album getAlbum(UUID albumId) {
+        return albumRepository.findWithArtistById(albumId).orElseThrow(
+                () -> new AlbumNotFoundException("Album with id '" + albumId + "' not found."));
+    }
 }
