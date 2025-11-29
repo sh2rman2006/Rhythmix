@@ -36,7 +36,7 @@ spec:
               value: "PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:29093"
 
             - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka.{{ .Values.namespace }}.svc:9092,CONTROLLER://kafka.{{ .Values.namespace }}.svc:29093"
+              value: "PLAINTEXT://kafka.{{ .Values.namespace }}.svc:9092"
 
             - name: KAFKA_CONTROLLER_LISTENER_NAMES
               value: "CONTROLLER"
