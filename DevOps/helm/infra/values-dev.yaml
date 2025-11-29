@@ -21,12 +21,11 @@ kafka:
   enabled: true
 
   image:
-    repository: confluentinc/cp-kafka
-    tag: 7.6.1
+    repository: bitnami/kafka
+    tag: 3.7
     pullPolicy: IfNotPresent
 
   kraft:
-    # можно взять из твоего .env / compose, пока просто стабильный id
     clusterId: "PVjHlx7ESeesq55jeB6Efw"
     controllerQuorumVoters: "1@kafka.rhythmix-dev.svc:9091"
 
