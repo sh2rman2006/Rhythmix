@@ -2,28 +2,28 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: minio-secret
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
-  MINIO_ROOT_USER: { { .Values.minio.accessKey | quote } }
-  MINIO_ROOT_PASSWORD: { { .Values.minio.secretKey | quote } }
+  MINIO_ROOT_USER: {{ .Values.minio.accessKey | quote }}
+  MINIO_ROOT_PASSWORD: {{ .Values.minio.secretKey | quote }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: minio-data
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: { { .Values.minio.storageSize | quote } }
+      storage: {{ .Values.minio.storageSize | quote }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: minio
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
@@ -36,7 +36,7 @@ spec:
     spec:
       containers:
         - name: minio
-          image: { { .Values.minio.image } }
+          image: {{ .Values.minio.image }}
           args: ["server", "/data", "--console-address", ":9001"]
           envFrom:
             - secretRef:
@@ -56,7 +56,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: minio
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 spec:
   selector:
     app: minio

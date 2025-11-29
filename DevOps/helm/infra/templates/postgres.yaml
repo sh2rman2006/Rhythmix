@@ -2,29 +2,29 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: postgres-secret
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 type: Opaque
 stringData:
-  POSTGRES_USER: { { .Values.postgres.username | quote } }
-  POSTGRES_PASSWORD: { { .Values.postgres.password | quote } }
-  POSTGRES_DB: { { .Values.postgres.database | quote } }
+  POSTGRES_USER: {{ .Values.postgres.username | quote }}
+  POSTGRES_PASSWORD: {{ .Values.postgres.password | quote }}
+  POSTGRES_DB: {{ .Values.postgres.database | quote }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-data
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 spec:
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
-      storage: { { .Values.postgres.storageSize | quote } }
+      storage: {{ .Values.postgres.storageSize | quote }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 spec:
   replicas: 1
   selector:
@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: { { .Values.postgres.image } }
+          image: {{ .Values.postgres.image }}
           envFrom:
             - secretRef:
                 name: postgres-secret
@@ -55,7 +55,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: { { .Values.namespace } }
+  namespace: {{ .Values.namespace }}
 spec:
   selector:
     app: postgres
