@@ -1,0 +1,52 @@
+# DevOps/helm/infra/kafka-values-dev.yaml
+
+# 3 брокера как в docker-compose
+replicaCount: 3
+minBrokerId: 1
+
+# включаем KRaft, выключаем ZooKeeper
+zookeeper:
+  enabled: false
+
+kraft:
+  enabled: true
+  processRoles: "broker,controller"
+  controllerListenerNames: "CONTROLLER"
+  # сгенерируй ОДИН раз:
+  # docker run --rm bitnami/kafka:3 kafka-storage.sh random-uuid
+  clusterId: "PVjHlx7ESeesq55jeB6Efw"
+
+# внутри кластера всё в plaintext, этого достаточно
+auth:
+  clientProtocol: plaintext
+  interBrokerProtocol: plaintext
+
+# имя release = имя сервисов => получим kafka.rhythmix-dev.svc:9092
+fullnameOverride: kafka
+
+# Порты сервиса
+service:
+  type: ClusterIP
+  ports:
+    client: 9092
+
+# Дополнительные env, максимально похожие на docker-compose
+extraEnvVars:
+  - name: KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE
+    value: "false"
+  - name: KAFKA_CFG_NUM_PARTITIONS
+    value: "3"
+  - name: KAFKA_CFG_DEFAULT_REPLICATION_FACTOR
+    value: "3"
+  - name: KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR
+    value: "3"
+  - name: KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR
+    value: "3"
+  - name: KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR
+    value: "2"
+  - name: KAFKA_CFG_LOG_RETENTION_HOURS
+    value: "168"
+  - name: KAFKA_CFG_MESSAGE_MAX_BYTES
+    value: "1048588"
+  - name: KAFKA_CFG_REPLICA_FETCH_MAX_BYTES
+    value: "1048588"

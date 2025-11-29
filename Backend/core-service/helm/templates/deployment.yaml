@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rhythmix-backend
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: rhythmix-backend
+    app.kubernetes.io/component: backend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rhythmix-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: rhythmix-backend
+        app.kubernetes.io/component: backend
+      {{- if .Values.vault.enabled }}
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "{{ .Values.vault.role }}"
+        # Пример: вытащить env-файл с Postgres
+        vault.hashicorp.com/agent-inject-secret-postgres: "{{ .Values.vault.paths.postgres }}"
+        vault.hashicorp.com/agent-inject-template-postgres: |
+          {{`{{- with secret "`}}{{ .Values.vault.paths.postgres }}{{`" -}}`}}
+          POSTGRES_DB={{`{{ .Data.data.POSTGRES_DB }}`}}
+          POSTGRES_USER={{`{{ .Data.data.POSTGRES_USER }}`}}
+          POSTGRES_PASSWORD={{`{{ .Data.data.POSTGRES_PASSWORD }}`}}
+          POSTGRES_URL={{`{{ .Data.data.POSTGRES_URL }}`}}
+          {{`{{- end }}`}}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      containers:
+        - name: rhythmix-backend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+              name: http
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

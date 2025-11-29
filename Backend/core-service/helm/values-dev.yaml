@@ -1,0 +1,41 @@
+namespace: rhythmix-dev
+
+image:
+  repository: registry.sh-2rm-an.tech/rhythmix/core-service
+  tag: "dev"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: traefik
+  host: core-dev.sh-2rm-an.tech
+  path: /
+  tls:
+    enabled: false
+
+serviceAccount:
+  create: true
+  name: rhythmix-backend-sa
+
+vault:
+  enabled: false
+
+env:
+  SPRING_PROFILES_ACTIVE: "dev"
+
+  POSTGRES_URL: "jdbc:postgresql://postgres.rhythmix-dev.svc:5432/Rhythmix"
+
+  REDIS_HOST: "redis.rhythmix-dev.svc"
+  REDIS_PORT: "6379"
+
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.rhythmix-dev.svc:9092"
+
+  MINIO_URL: "http://minio.rhythmix-dev.svc:9000"
+
+  KEYCLOAK_URL: "https://keycloak.sh-2rm-an.tech/realms/Rhythmix"
