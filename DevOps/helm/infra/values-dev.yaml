@@ -1,0 +1,25 @@
+namespace: rhythmix-dev
+
+postgres:
+  image: postgres:16
+  username: rhythmix
+  password: rhythmix-dev-pass
+  database: rhythmix
+  storageSize: 5Gi
+
+redis:
+  image: redis:7
+  storageSize: 1Gi
+
+minio:
+  image: quay.io/minio/minio:latest
+  accessKey: rhythmix-minio
+  secretKey: rhythmix-minio-dev-pass
+  storageSize: 10Gi
+
+kafka:
+  image: bitnami/kafka:latest
+  replicas: 1
+  storageSize: 5Gi
+  # для dev хватит одной ноды и PLAINTEXT
+  externalPort: 9092

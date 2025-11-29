@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rhythmix-core-service
+description: Helm chart for Rhythmix core-service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

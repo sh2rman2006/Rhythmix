@@ -1,0 +1,29 @@
+namespace: rhythmix-prod
+
+image:
+  tag: "prod"
+
+replicaCount: 1
+
+ingress:
+  enabled: true
+  host: rhythmix-api.sh-2rm-an.tech
+  tls:
+    enabled: true
+    secretName: core-rhythmix-prod-tls
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "512Mi"
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+
+env:
+  SPRING_PROFILES_ACTIVE: "prod"
+
+  POSTGRES_URL: "jdbc:postgresql://postgres.rhythmix-prod.svc:5432/rhythmix"
+  KAFKA_BOOTSTRAP_SERVERS: "kafka.rhythmix-prod.svc:9092"
+  MINIO_URL: "http://minio.rhythmix-prod.svc:9000"
+  KEYCLOAK_URL: "https://keycloak.rhythmix.prod/auth/realms/Rhythmix"
