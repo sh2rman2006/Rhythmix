@@ -1,0 +1,60 @@
+{{- if .Values.kafka.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      containers:
+        - name: kafka
+          image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
+          imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
+          ports:
+            - containerPort: 9090
+            - containerPort: 9091
+          env:
+            - name: KAFKA_CFG_NODE_ID
+              value: "1"
+            - name: KAFKA_KRAFT_CLUSTER_ID
+              value: "{{ .Values.kafka.kraft.clusterId }}"
+            - name: KAFKA_CFG_PROCESS_ROLES
+              value: "controller,broker"
+            - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+              value: "{{ .Values.kafka.kraft.controllerQuorumVoters }}"
+            - name: KAFKA_CFG_LISTENERS
+              value: "PLAINTEXT://:9090,CONTROLLER://:9091"
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka.{{ $.Values.namespace }}.svc:9090"
+            - name: KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP
+              value: "CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT"
+            - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_CFG_INTER_BROKER_LISTENER_NAME
+              value: "PLAINTEXT"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.kafka.service.name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: kafka
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: plaintext
+      port: {{ .Values.kafka.service.port }}
+      targetPort: 9090
+{{- end }}

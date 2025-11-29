@@ -18,8 +18,18 @@ minio:
   storageSize: 10Gi
 
 kafka:
-  image: bitnami/kafka:latest
-  replicas: 1
-  storageSize: 5Gi
-  # для dev хватит одной ноды и PLAINTEXT
-  externalPort: 9092
+  enabled: true
+
+  image:
+    repository: bitnami/kafka
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  kraft:
+    # можно взять из твоего .env / compose, пока просто стабильный id
+    clusterId: "PVjHlx7ESeesq55jeB6Efw"
+    controllerQuorumVoters: "1@kafka.rhythmix-dev.svc:9091"
+
+  service:
+    name: kafka
+    port: 9090
