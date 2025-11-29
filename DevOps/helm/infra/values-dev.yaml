@@ -21,14 +21,13 @@ kafka:
   enabled: true
 
   image:
-    repository: bitnami/kafka
-    tag: 3.7
+    repository: apache/kafka
+    tag: "3.7.0"
     pullPolicy: IfNotPresent
-
-  kraft:
-    clusterId: "PVjHlx7ESeesq55jeB6Efw"
-    controllerQuorumVoters: "1@kafka.rhythmix-dev.svc:9091"
 
   service:
     name: kafka
-    port: 9090
+    port: 9092
+
+  kraft:
+    clusterId: "4L6g3nShT-eMCtK--X86sw"
