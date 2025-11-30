@@ -10,9 +10,9 @@ replicaCount: 1
 postgres:
   host: postgres.rhythmix-dev.svc
   port: 5432
-  db: keycloak
-  user: keycloak
-  password: keycloak-dev-pass
+  db: rhythmix
+  user: rhythmix
+  password: rhythmix-dev-pass
 
 kafka:
   # наш сервис kafka в кластере (порт 9090 из infra-чарта)
