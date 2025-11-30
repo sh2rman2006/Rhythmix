@@ -44,33 +44,26 @@ spec:
             - /bin/bash
             - -c
             - |
-              cat <<EOF > /etc/kafka/server.properties
-              process.roles=controller,broker
-              node.id=1
-              controller.quorum.voters=1@kafka.{{ $.Values.namespace }}.svc.cluster.local:9093
-              listeners=PLAINTEXT://:9092,CONTROLLER://:9093
-              advertised.listeners=PLAINTEXT://kafka.{{ $.Values.namespace }}.svc.cluster.local:9092
-              listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
-              controller.listener.names=CONTROLLER
-              inter.broker.listener.name=PLAINTEXT
-              log.dirs={{ .Values.kafka.logDir }}
-              offsets.topic.replication.factor=1
-              transaction.state.log.replication.factor=1
-              transaction.state.log.min.isr=1
-              auto.create.topics.enable=true
-              EOF
+              set -e
 
-              # Форматируем хранилище KRaft (если лог-директория чистая – ок, для dev можно делать всегда)
-              kafka-storage.sh format \
-                -t {{ .Values.kafka.clusterId }} \
-                -c /etc/kafka/server.properties
+              # Полные пути к скриптам Kafka
+              KAFKA_BIN=/opt/kafka/bin
 
-              # Запускаем брокер+контроллер
-              kafka-server-start.sh /etc/kafka/server.properties
+              # если лог-директория пустая — форматируем хранилище
+              if [ ! -f /var/lib/kafka/data/meta.properties ]; then
+                KAFKA_CLUSTER_ID="$(${KAFKA_BIN}/kafka-storage.sh random-uuid)"
+                ${KAFKA_BIN}/kafka-storage.sh format \
+                  -t "${KAFKA_CLUSTER_ID}" \
+                  -c /opt/kafka/config/kraft/server.properties
+              fi
+
+              # запускаем брокер в KRaft
+              exec ${KAFKA_BIN}/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
+
           volumeMounts:
             - name: kafka-data
               mountPath: {{ .Values.kafka.logDir }}
       volumes:
         - name: kafka-data
-          emptyDir: {}
+          emptyDir: { }
 {{- end }}
