@@ -2,7 +2,7 @@ namespace: rhythmix-dev
 
 image:
   repository: quay.io/keycloak/keycloak
-  tag: "24.0.5"
+  tag: "26.2.5"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
