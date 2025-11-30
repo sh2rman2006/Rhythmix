@@ -20,14 +20,10 @@ minio:
 kafka:
   enabled: true
 
-  image:
-    repository: apache/kafka
-    tag: "3.7.0"
-    pullPolicy: IfNotPresent
+  image: "apache/kafka:3.7.0"
 
-  service:
-    name: kafka
-    port: 9092
+  servicePort: 9092
+  controllerPort: 9093
 
-  kraft:
-    clusterId: "4L6g3nShT-eMCtK--X86sw"
+  clusterId: "PVjHlx7ESeesq55jeB6Efw"
+
