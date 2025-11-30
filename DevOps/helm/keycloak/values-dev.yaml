@@ -3,7 +3,7 @@ namespace: rhythmix-dev
 image:
   repository: quay.io/keycloak/keycloak
   tag: "26.2.5"
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 replicaCount: 1
 

@@ -19,7 +19,7 @@ spec:
       initContainers:
         - name: keycloak-kafka-listener-init
           image: sh2rman/rhythmix:keycloak-listener
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           command:
             - sh
             - -c
