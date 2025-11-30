@@ -1,4 +1,21 @@
 {{- if .Values.kafka.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.kafka.service.name }}
+  namespace: {{ $.Values.namespace }}
+  labels:
+    app: kafka
+spec:
+  selector:
+    app: kafka
+  ports:
+    - name: plaintext
+      port: {{ .Values.kafka.service.port }}
+      targetPort: 9092
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -18,53 +35,42 @@ spec:
     spec:
       containers:
         - name: kafka
-          image: {{ .Values.kafka.image }}
-          env:
-            # один брокер = один и контроллер, id = 1
-            - name: KAFKA_NODE_ID
-              value: "1"
-            - name: KAFKA_PROCESS_ROLES
-              value: "controller,broker"
-
-            # KRaft
-            - name: KAFKA_CLUSTER_ID
-              value: {{ .Values.kafka.clusterId | quote }}
-            - name: KAFKA_CONTROLLER_QUORUM_VOTERS
-              value: "1@kafka.{{ $.Values.namespace }}.svc:{{ .Values.kafka.controllerPort }}"
-            - name: KAFKA_CONTROLLER_LISTENER_NAMES
-              value: "CONTROLLER"
-
-            # слушаем внутри pod’а и наружу через сервис
-            - name: KAFKA_LISTENERS
-              value: "PLAINTEXT://:{{ .Values.kafka.servicePort }},CONTROLLER://:{{ .Values.kafka.controllerPort }}"
-            - name: KAFKA_ADVERTISED_LISTENERS
-              value: "PLAINTEXT://kafka.{{ $.Values.namespace }}.svc:{{ .Values.kafka.servicePort }}"
-            - name: KAFKA_LISTENER_SECURITY_PROTOCOL_MAP
-              value: "PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT"
-
+          image: "{{ .Values.kafka.image.repository }}:{{ .Values.kafka.image.tag }}"
+          imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
           ports:
-            - containerPort: {{ .Values.kafka.servicePort }}
-            - containerPort: {{ .Values.kafka.controllerPort }}
+            - containerPort: 9092
+          # Основной трюк: форматируем storage и сразу запускаем брокер
+          command:
+            - /bin/bash
+            - -c
+            - |
+              cat <<EOF > /etc/kafka/server.properties
+              process.roles=controller,broker
+              node.id=1
+              controller.quorum.voters=1@kafka.{{ $.Values.namespace }}.svc.cluster.local:9093
+              listeners=PLAINTEXT://:9092,CONTROLLER://:9093
+              advertised.listeners=PLAINTEXT://kafka.{{ $.Values.namespace }}.svc.cluster.local:9092
+              listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+              controller.listener.names=CONTROLLER
+              inter.broker.listener.name=PLAINTEXT
+              log.dirs={{ .Values.kafka.logDir }}
+              offsets.topic.replication.factor=1
+              transaction.state.log.replication.factor=1
+              transaction.state.log.min.isr=1
+              auto.create.topics.enable=true
+              EOF
+
+              # Форматируем хранилище KRaft (если лог-директория чистая – ок, для dev можно делать всегда)
+              kafka-storage.sh format \
+                -t {{ .Values.kafka.clusterId }} \
+                -c /etc/kafka/server.properties
+
+              # Запускаем брокер+контроллер
+              kafka-server-start.sh /etc/kafka/server.properties
           volumeMounts:
-            - name: data
-              mountPath: /var/lib/kafka
+            - name: kafka-data
+              mountPath: {{ .Values.kafka.logDir }}
       volumes:
-        # для dev можно пустой emptyDir (данные пропадут при пересоздании pod’а)
-        - name: data
+        - name: kafka-data
           emptyDir: {}
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: kafka
-  namespace: {{ $.Values.namespace }}
-  labels:
-    app: kafka
-spec:
-  selector:
-    app: kafka
-  ports:
-    - name: plaintext
-      port: {{ .Values.kafka.servicePort }}
-      targetPort: {{ .Values.kafka.servicePort }}
 {{- end }}
