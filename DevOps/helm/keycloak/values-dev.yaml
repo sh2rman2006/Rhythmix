@@ -1,0 +1,30 @@
+namespace: rhythmix-dev
+
+image:
+  repository: quay.io/keycloak/keycloak
+  tag: "24.0.5"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+postgres:
+  host: postgres.rhythmix-dev.svc
+  port: 5432
+  db: keycloak
+  user: keycloak
+  password: keycloak-dev-pass
+
+kafka:
+  # наш сервис kafka в кластере (порт 9090 из infra-чарта)
+  bootstrapServers: "kafka.rhythmix-dev.svc:9090"
+
+service:
+  name: keycloak
+  port: 8080
+
+admin:
+  username: admin
+  password: admin-dev-pass
+
+ingress:
+  enabled: false  # потом включим и выведем через Traefik

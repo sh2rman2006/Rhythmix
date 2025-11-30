@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: keycloak
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      # init-контейнер, который приносит наш JAR в shared volume
+      initContainers:
+        - name: keycloak-kafka-listener-init
+          image: sh2rman/rhythmix:keycloak-listener
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - -c
+            - |
+              cp /opt/keycloak/providers/keycloak-kafka-listener.jar /providers/keycloak-kafka-listener.jar
+          volumeMounts:
+            - name: providers
+              mountPath: /providers
+
+      containers:
+        - name: keycloak
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "start-dev"
+            - "--spi-events-listener-provider=kafka"
+          env:
+            # DB
+            - name: KC_DB
+              value: "postgres"
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://{{ .Values.postgres.host }}:{{ .Values.postgres.port }}/{{ .Values.postgres.db }}"
+            - name: KC_DB_USERNAME
+              value: "{{ .Values.postgres.user }}"
+            - name: KC_DB_PASSWORD
+              value: "{{ .Values.postgres.password }}"
+
+            # bootstrap-админ
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              value: "{{ .Values.admin.username }}"
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              value: "{{ .Values.admin.password }}"
+
+            # HTTP настройки
+            - name: KC_HTTP_PORT
+              value: "8080"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+
+            # Kafka для твоего listener’а
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "{{ .Values.kafka.bootstrapServers }}"
+
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: providers
+              mountPath: /opt/keycloak/providers
+      volumes:
+        - name: providers
+          emptyDir: {}
