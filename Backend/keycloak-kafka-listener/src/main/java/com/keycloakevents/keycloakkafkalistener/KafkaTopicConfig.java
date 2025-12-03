@@ -11,7 +11,7 @@ public class KafkaTopicConfig {
     public NewTopic keycloakEventsTopic() {
         return TopicBuilder.name("keycloak-events")
                 .partitions(3)
-                .replicas(3)
+                .replicas(1)
                 .build();
     }
 }

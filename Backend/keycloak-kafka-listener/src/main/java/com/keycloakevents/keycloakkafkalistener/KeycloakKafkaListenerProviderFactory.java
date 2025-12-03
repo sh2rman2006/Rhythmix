@@ -17,7 +17,7 @@ public class KeycloakKafkaListenerProviderFactory implements EventListenerProvid
 
     @Override
     public void init(org.keycloak.Config.Scope scope) {
-        this.bootstrapServers = scope.get("bootstrap.servers", "kafka-1:9090, kafka-2:9090, kafka-3:9090");
+        this.bootstrapServers = scope.get("bootstrap.servers", "kafka.rhythmix-dev.svc:9092");
         this.topic = scope.get("topic", "keycloak-events");
     }
 
