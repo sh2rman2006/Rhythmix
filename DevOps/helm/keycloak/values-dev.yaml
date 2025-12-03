@@ -16,7 +16,7 @@ postgres:
 
 kafka:
   # наш сервис kafka в кластере (порт 9090 из infra-чарта)
-  bootstrapServers: "kafka.rhythmix-dev.svc:9090"
+  bootstrapServers: "kafka.rhythmix-dev.svc:9092"
 
 service:
   name: keycloak
