@@ -18,7 +18,7 @@ spec:
       # init-контейнер, который приносит наш JAR в shared volume
       initContainers:
         - name: keycloak-kafka-listener-init
-          image: sh2rman/rhythmix:keycloak-listener
+          image: sh2rman/keycloak-kafka-listener:latest
           imagePullPolicy: Always
           command:
             - sh
