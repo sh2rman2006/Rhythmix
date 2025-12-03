@@ -27,4 +27,10 @@ admin:
   password: admin-dev-pass
 
 ingress:
-  enabled: false  # потом включим и выведем через Traefik
+  enabled: true
+  className: "traefik"            # для k3s traefik обычно норм
+  host: keycloak.sh-2rm-an.tech   # можешь поменять на что хочешь
+  tls:
+    enabled: false                # пока без TLS, потом прикрутим cert-manager
+    secretName: keycloak-tls
+
