@@ -28,5 +28,6 @@ kafka:
 
   clusterId: "PVjHlx7ESeesq55jeB6Efw"
 
-
-
+  # НОВОЕ — что будем анонсировать клиентам
+  advertisedHost: "kafka.rhythmix-dev.svc"
+  advertisedPort: 9092
