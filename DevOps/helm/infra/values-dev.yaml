@@ -24,14 +24,9 @@ kafka:
     tag: "3.7.0"
     pullPolicy: IfNotPresent
 
-  # лог-директория внутри контейнера
   logDir: "/var/lib/kafka/data"
 
-  # стабильный clusterId для KRaft (любой 22-символьный base64, можешь оставить этот)
   clusterId: "PVjHlx7ESeesq55jeB6Efw"
 
-  service:
-    name: kafka
-    port: 9092
 
 

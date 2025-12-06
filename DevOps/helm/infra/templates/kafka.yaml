@@ -39,6 +39,24 @@ spec:
           imagePullPolicy: {{ .Values.kafka.image.pullPolicy }}
           ports:
             - containerPort: 9092
+
+          env:
+            # KRaft + сетевые настройки
+            - name: KAFKA_CFG_LISTENERS
+              value: "PLAINTEXT://:9092,CONTROLLER://:9093"
+            - name: KAFKA_CFG_ADVERTISED_LISTENERS
+              value: "PLAINTEXT://kafka.{{ $.Values.namespace }}.svc:{{ .Values.kafka.service.port }}"
+            - name: KAFKA_CFG_PROCESS_ROLES
+              value: "controller,broker"
+            - name: KAFKA_CFG_CONTROLLER_LISTENER_NAMES
+              value: "CONTROLLER"
+            - name: KAFKA_CFG_NODE_ID
+              value: "1"
+            - name: KAFKA_CFG_CONTROLLER_QUORUM_VOTERS
+              value: "1@kafka.{{ $.Values.namespace }}.svc:9093"
+            - name: KAFKA_LOG_DIRS
+              value: "{{ .Values.kafka.logDir }}"
+
           # Основной трюк: форматируем storage и сразу запускаем брокер
           command:
             - /bin/bash
@@ -46,19 +64,24 @@ spec:
             - |
               set -e
 
-              # Полные пути к скриптам Kafka
               KAFKA_BIN=/opt/kafka/bin
+              KAFKA_CONFIG=/opt/kafka/config/kraft/server.properties
+              DATA_DIR="{{ .Values.kafka.logDir }}"
 
               # если лог-директория пустая — форматируем хранилище
-              if [ ! -f /var/lib/kafka/data/meta.properties ]; then
-                KAFKA_CLUSTER_ID="$(${KAFKA_BIN}/kafka-storage.sh random-uuid)"
+              if [ ! -f "${DATA_DIR}/meta.properties" ]; then
+                KAFKA_CLUSTER_ID="{{ .Values.kafka.clusterId }}"
+                if [ -z "${KAFKA_CLUSTER_ID}" ]; then
+                  KAFKA_CLUSTER_ID="$(${KAFKA_BIN}/kafka-storage.sh random-uuid)"
+                fi
+
                 ${KAFKA_BIN}/kafka-storage.sh format \
                   -t "${KAFKA_CLUSTER_ID}" \
-                  -c /opt/kafka/config/kraft/server.properties
+                  -c "${KAFKA_CONFIG}"
               fi
 
               # запускаем брокер в KRaft
-              exec ${KAFKA_BIN}/kafka-server-start.sh /opt/kafka/config/kraft/server.properties
+              exec ${KAFKA_BIN}/kafka-server-start.sh "${KAFKA_CONFIG}"
 
           volumeMounts:
             - name: kafka-data
