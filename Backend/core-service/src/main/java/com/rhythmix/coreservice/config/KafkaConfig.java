@@ -79,7 +79,7 @@ public class KafkaConfig {
     public NewTopic keycloakEventsTopic() {
         return TopicBuilder.name("keycloak-events")
                 .partitions(3)
-                .replicas(3)
+                .replicas(1)
                 .build();
     }
 
@@ -87,7 +87,7 @@ public class KafkaConfig {
     public NewTopic keycloakEventsDLT() {
         return TopicBuilder.name("keycloak-events-dlt")
                 .partitions(3)
-                .replicas(3)
+                .replicas(1)
                 .build();
     }
 }
