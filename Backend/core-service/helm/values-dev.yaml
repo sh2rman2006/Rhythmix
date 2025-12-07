@@ -27,13 +27,17 @@ vault:
   enabled: false
 
 env:
+  SPRING_PROFILES_ACTIVE: "dev"
+
   POSTGRES_URL: "jdbc:postgresql://postgres.rhythmix-dev.svc:5432/rhythmix"
   POSTGRES_USER: "rhythmix"
   POSTGRES_PASSWORD: "rhythmix-dev-pass"
+
   REDIS_HOST: "redis.rhythmix-dev.svc"
   REDIS_PORT: "6379"
+
   KAFKA_BOOTSTRAP_SERVERS: "kafka.rhythmix-dev.svc:9092"
+
+  MINIO_URL: "http://minio.rhythmix-dev.svc:9000"
+
   KEYCLOAK_URL: "http://keycloak.sh-2rm-an.tech/realms/Rhythmix"
-  MINIO_URL: "http://minio.rhythmix-dev.svc:9000/"
-  MINIO_ROOT_USER: "rhythmix-minio"
-  MINIO_ROOT_PASSWORD: "rhythmix-minio-dev-pass"
