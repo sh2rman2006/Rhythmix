@@ -1,7 +1,7 @@
 namespace: rhythmix-dev
 
 image:
-  repository: registry.sh-2rm-an.tech/rhythmix/core-service
+  repository: sh2rman/rhythmix-core-service
   tag: "dev"
   pullPolicy: IfNotPresent
 
