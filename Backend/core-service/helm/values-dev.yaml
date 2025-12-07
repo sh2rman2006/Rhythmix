@@ -39,5 +39,7 @@ env:
   KAFKA_BOOTSTRAP_SERVERS: "kafka.rhythmix-dev.svc:9092"
 
   MINIO_URL: "http://minio.rhythmix-dev.svc:9000"
+  MINIO_ROOT_USER: "rhythmix-minio"
+  MINIO_ROOT_PASSWORD: "rhythmix-minio-dev-pass"
 
   KEYCLOAK_URL: "http://keycloak.sh-2rm-an.tech/realms/Rhythmix"
