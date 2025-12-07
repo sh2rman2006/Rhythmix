@@ -1,33 +1,27 @@
-# Используем образ с JDK 24
 FROM amazoncorretto:21-alpine AS build
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем wrapper Maven и конфигурационные файлы
 COPY ./mvnw ./mvnw
 COPY ./.mvn ./.mvn
 COPY ./pom.xml ./pom.xml
 
-# Загружаем зависимости для ускорения сборки
 RUN chmod +x ./mvnw
-RUN ./mvnw dependency:resolve -Dmaven.repo.local=/root/.m2/repository
 
-# Копируем исходный код
+# Качаем зависимости (можно go-offline, так стабильнее)
+RUN ./mvnw dependency:go-offline -Dmaven.repo.local=/root/.m2/repository
+
+# Копируем исходники
 COPY ./src ./src
 
 # Собираем приложение
 RUN ./mvnw package -DskipTests -Dmaven.repo.local=/root/.m2/repository
 
-# Используем минимальный образ с JDK для запуска
+# Runtime-образ
 FROM amazoncorretto:21-alpine
-
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем собранный JAR из этапа сборки
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 8081
-# Запускаем приложение
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
