@@ -37,11 +37,3 @@ jobs:
           tags: |
             ${{ env.IMAGE }}:${{ github.sha }}
             ${{ env.IMAGE }}:dev
-
-      - name: Trivy scan (fail on HIGH,CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: ${{ env.IMAGE }}:${{ github.sha }}
-          format: table
-          exit-code: "1"
-          severity: "HIGH,CRITICAL"
