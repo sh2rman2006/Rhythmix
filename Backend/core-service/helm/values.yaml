@@ -27,10 +27,10 @@ vault:
   enabled: false
   role: "rhythmix-backend"
   paths:
-    postgres: "secret/data/rhythmix/postgres"
-    minio: "secret/data/rhythmix/minio"
-    kafka: "secret/data/rhythmix/kafka"
-    keycloak: "secret/data/rhythmix/keycloak"
+    postgres: "secret/data/rhythmix/dev/postgres"
+    minio: "secret/data/rhythmix/dev/minio"
+    kafka: "secret/data/rhythmix/dev/kafka"
+    keycloak: "secret/data/rhythmix/dev/keycloak"
 
 env:
   SPRING_PROFILES_ACTIVE: "default"
