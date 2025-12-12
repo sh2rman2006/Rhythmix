@@ -3,18 +3,6 @@ kind: Application
 metadata:
   name: core-service-dev
   namespace: argocd
-  annotations:
-    argocd-image-updater.argoproj.io/image-list: core-service=docker.io/sh2rman/rhythmix-core-service
-
-    argocd-image-updater.argoproj.io/core-service.helm.image-name: image.repository
-    argocd-image-updater.argoproj.io/core-service.helm.image-tag: image.tag
-
-    argocd-image-updater.argoproj.io/core-service.update-strategy: newest-build
-    argocd-image-updater.argoproj.io/core-service.allow-tags: regexp:^[0-9a-f]{40}$
-
-    argocd-image-updater.argoproj.io/write-back-target: helmvalues:values-dev.yaml
-    argocd-image-updater.argoproj.io/git-branch: dev
-
 spec:
   project: default
 
@@ -34,5 +22,3 @@ spec:
     automated:
       prune: true
       selfHeal: true
-    syncOptions:
-      - CreateNamespace=true

@@ -1,4 +1,4 @@
-name: core-service build & push (dev)
+name: core-service build & deploy (dev)
 
 on:
   push:
@@ -8,14 +8,15 @@ on:
       - ".github/workflows/core-service.yml"
 
 permissions:
-  contents: read
+  contents: write # ВАЖНО: чтобы коммитить values
 
 env:
   IMAGE: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/rhythmix-core-service
 
 jobs:
-  build:
+  build-deploy:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -28,7 +29,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & Push
+      - name: Build & Push image
         uses: docker/build-push-action@v6
         with:
           context: Backend/core-service
@@ -36,4 +37,15 @@ jobs:
           push: true
           tags: |
             ${{ env.IMAGE }}:${{ github.sha }}
-            ${{ env.IMAGE }}:dev
+
+      - name: Update image tag in values-dev.yaml
+        run: |
+          sed -i "s/^  tag: .*/  tag: \"${GITHUB_SHA}\"/" Backend/core-service/helm/values-dev.yaml
+
+      - name: Commit & push helm values
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add Backend/core-service/helm/values-dev.yaml
+          git commit -m "chore(core-service): deploy ${GITHUB_SHA}"
+          git push
