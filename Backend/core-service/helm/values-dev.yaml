@@ -14,7 +14,7 @@ service:
 ingress:
   enabled: true
   className: traefik
-  host: core-dev.sh-2rm-an.tech
+  host: rhythmix-core-dev.sh-2rm-an.tech
   path: /
   tls:
     enabled: false

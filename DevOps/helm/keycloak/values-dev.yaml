@@ -29,7 +29,7 @@ admin:
 ingress:
   enabled: true
   className: "traefik"            # для k3s traefik обычно норм
-  host: keycloak.sh-2rm-an.tech   # можешь поменять на что хочешь
+  host: rhythmix-keycloak-dev.sh-2rm-an.tech   # можешь поменять на что хочешь
   tls:
     enabled: false                # пока без TLS, потом прикрутим cert-manager
     secretName: keycloak-tls
