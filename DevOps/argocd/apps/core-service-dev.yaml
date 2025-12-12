@@ -6,14 +6,13 @@ metadata:
   annotations:
     argocd-image-updater.argoproj.io/image-list: core-service=docker.io/sh2rman/rhythmix-core-service
 
-    argocd-image-updater.argoproj.io/core-service.update-strategy: newest-build
+    argocd-image-updater.argoproj.io/core-service.helm.image-name: image.repository
+    argocd-image-updater.argoproj.io/core-service.helm.image-tag: image.tag
 
+    argocd-image-updater.argoproj.io/core-service.update-strategy: newest-build
     argocd-image-updater.argoproj.io/core-service.allow-tags: regexp:^[0-9a-f]{40}$
 
-    argocd-image-updater.argoproj.io/write-back-method: git
     argocd-image-updater.argoproj.io/write-back-target: helmvalues:values-dev.yaml
-
-    argocd-image-updater.argoproj.io/git-repository: https://github.com/sh2rman2006/Rhythmix
     argocd-image-updater.argoproj.io/git-branch: dev
 
 spec:
