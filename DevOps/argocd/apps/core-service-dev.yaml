@@ -3,6 +3,22 @@ kind: Application
 metadata:
   name: core-service-dev
   namespace: argocd
+  annotations:
+    # Говорим image-updater'у за каким образом следить
+    argocd-image-updater.argoproj.io/image-list: |
+      core-service=sh2rman/rhythmix-core-service
+
+    # Используем теги вида SHA
+    argocd-image-updater.argoproj.io/core-service.update-strategy: digest
+
+    # В какой файл писать новый тег
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/write-back-target: helmvalues:values-dev.yaml
+
+    # Git-репозиторий
+    argocd-image-updater.argoproj.io/git-repository: https://github.com/sh2rman2006/Rhythmix
+    argocd-image-updater.argoproj.io/git-branch: dev
+
 spec:
   project: default
 
