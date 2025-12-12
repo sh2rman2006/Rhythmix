@@ -2,7 +2,7 @@ namespace: rhythmix-dev
 
 image:
   repository: sh2rman/rhythmix-core-service
-  tag: "dev"
+  tag: "6662093338ee21e2fa2f49adb0e39d9665950c0c"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
